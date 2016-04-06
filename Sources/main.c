@@ -36,6 +36,7 @@
 #include "IO_Map.h"
 
 #include "cmd.h"
+#include "LEDs.h"
 #include "packet.h"
 #include "UART.h"
 
@@ -91,6 +92,7 @@ int main(void)
 
   /* Write your code here */
   Packet_Init(BAUD_RATE, MODULE_CLOCK);
+  LEDs_Init();
 
   CMD_TX_Startup_Packet();
   CMD_TX_Special_Tower_Version();
@@ -100,6 +102,7 @@ int main(void)
   {
       UART_Poll();
       if (Packet_Get()) {
+	  LEDs_Toggle(LED_ORANGE);
 	  Packet_Handle();
       }
   }

@@ -45,14 +45,19 @@ typedef struct
 } TPacket;
 #pragma pack(pop)
 
-#define Packet_Command     Packet.command
-#define Packet_Parameter1  Packet.parameters.separate.parameter1
-#define Packet_Parameter2  Packet.parameters.separate.parameter2
-#define Packet_Parameter3  Packet.parameters.separate.parameter3
-#define Packet_Parameter12 Packet.parameters.combined12.parameter12
-#define Packet_Parameter23 Packet.parameters.combined23.parameter23
-
 extern TPacket Packet;
+
+extern uint8_t Packet_Command,
+	Packet_Parameter1,
+	Packet_Parameter2,
+	Packet_Parameter3;
+
+//#define Packet_Command     Packet.command
+//#define Packet_Parameter1  Packet.parameters.separate.parameter1
+//#define Packet_Parameter2  Packet.parameters.separate.parameter2
+//#define Packet_Parameter3  Packet.parameters.separate.parameter3
+//#define Packet_Parameter12 Packet.parameters.combined12.parameter12
+//#define Packet_Parameter23 Packet.parameters.combined23.parameter23
 
 // Acknowledgment bit mask
 extern const uint8_t PACKET_ACK_MASK;
@@ -76,7 +81,5 @@ BOOL Packet_Get(void);
  *  @return BOOL - TRUE if a valid packet was sent.
  */
 BOOL Packet_Put(const uint8_t command, const uint8_t parameter1, const uint8_t parameter2, const uint8_t parameter3);
-
-#endif
 
 #endif

@@ -2,7 +2,7 @@
  *
  *  @brief This contains the functions in the program to read, write and erase flash.
  *
- *  @author Gideon Kanikevich - 11655899 & Joshua Gonsalves - 11848759
+ *  @author Robin Wohlers-Reichel & Joshua Gonsalves
  *  @date 2015-08-14
  */
 // new types
@@ -29,7 +29,7 @@ BOOL Flash_Init(void)
  *  @return BOOL - TRUE if the variable was allocated space in the Flash memory.
  *  @note Assumes Flash has been initialized.
  */
-BOOL Flash_AllocateVar(void **variable, const uint8_t size)
+BOOL Flash_AllocateVar(volatile void **variable, const uint8_t size)
 {
   // uint32_t *addy = 0x80000;
   uint8_t flashArray[FLASH_ARRAY]; // Define flash array and initialize all elements to zero
