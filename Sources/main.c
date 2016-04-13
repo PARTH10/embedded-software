@@ -47,7 +47,8 @@ void Packet_Handle()
 {
   BOOL error = bTRUE;
   //mask out the ack, otherwise it goes to default
-  switch(Packet_Command & ~PACKET_ACK_MASK) {
+  switch (Packet_Command & ~PACKET_ACK_MASK)
+  {
     case CMD_RX_GET_SPECIAL_START_VAL:
       CMD_TX_Startup_Packet();
       CMD_TX_Special_Tower_Version();
@@ -59,9 +60,12 @@ void Packet_Handle()
       error = bFALSE;
       break;
     case CMD_RX_TOWER_NUMBER:
-      if (Packet_Parameter1 == CMD_TOWER_NUMBER_GET) {
+      if (Packet_Parameter1 == CMD_TOWER_NUMBER_GET)
+      {
 	  CMD_TX_Tower_Number();
-      } else if (Packet_Parameter1 == CMD_TOWER_NUMBER_SET) {
+      }
+      else if (Packet_Parameter1 == CMD_TOWER_NUMBER_SET)
+      {
 	  CMD_RX_Tower_Number(Packet_Parameter2, Packet_Parameter3);
       }
       error = bFALSE;
@@ -69,11 +73,15 @@ void Packet_Handle()
     default:
       break;
   }
-  if (Packet_Command & PACKET_ACK_MASK) {
+  if (Packet_Command & PACKET_ACK_MASK)
+  {
       uint8_t maskedPacket = 0;
-      if (error == bTRUE) {
+      if (error == bTRUE)
+      {
 	  maskedPacket = Packet_Command & ~PACKET_ACK_MASK;
-      } else {
+      }
+      else
+      {
 	  maskedPacket = Packet_Command | PACKET_ACK_MASK;
       }
       Packet_Put(maskedPacket, Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
@@ -93,6 +101,7 @@ int main(void)
   /* Write your code here */
   Packet_Init(BAUD_RATE, MODULE_CLOCK);
   LEDs_Init();
+  LEDs_On(LED_ORANGE);
 
   CMD_TX_Startup_Packet();
   CMD_TX_Special_Tower_Version();
@@ -101,7 +110,8 @@ int main(void)
   for (;;)
   {
       UART_Poll();
-      if (Packet_Get()) {
+      if (Packet_Get())
+      {
 	  LEDs_Toggle(LED_ORANGE);
 	  Packet_Handle();
       }

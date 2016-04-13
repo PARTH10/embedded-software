@@ -27,7 +27,8 @@ uint8_t Packet_Command,
 
 const uint8_t PACKET_ACK_MASK = 0x80;
 
-uint8_t PacketTest() {
+uint8_t PacketTest()
+{
   uint8_t calc_checksum = Packet_Command ^ Packet_Parameter1 ^ Packet_Parameter2 ^ Packet_Parameter3;
   uint8_t ret_val = calc_checksum == packet_checksum;
 }
@@ -40,10 +41,12 @@ BOOL Packet_Init(const uint32_t baudRate, const uint32_t moduleClk)
 BOOL Packet_Get(void)
 {
   uint8_t uartData;
-  if (!UART_InChar(&uartData)) {
+  if (!UART_InChar(&uartData))
+  {
       return bFALSE;
   }
-  switch(packet_position) {
+  switch (packet_position)
+  {
     case 0:
       Packet_Command = uartData;
       packet_position++;
@@ -62,7 +65,8 @@ BOOL Packet_Get(void)
       return bFALSE;
     case 4:
       packet_checksum = uartData;
-      if (PacketTest()) {
+      if (PacketTest())
+      {
 	  packet_position = 0;
 	  return bTRUE;
       }

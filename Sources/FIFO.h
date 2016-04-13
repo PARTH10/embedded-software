@@ -52,9 +52,9 @@ BOOL FIFO_Put(TFIFO * const FIFO, const uint8_t data);
  *  @param FIFO A pointer to a FIFO struct with data to be retrieved.
  *  @param dataPtr A pointer to a memory location to place the retrieved byte.
  *  @return BOOL - TRUE if data is successfully retrieved from the FIFO.
- *  @note Assumes that FIFO_Init has been called.
+ *  @note Assumes that FIFO_Init has been called. Added volatile keyword for dataPtr.
  */
-BOOL FIFO_Get(TFIFO * const FIFO, uint8_t * const dataPtr);
+BOOL FIFO_Get(TFIFO * const FIFO, uint8_t volatile * const dataPtr);
 
 /*!
 ** @}
