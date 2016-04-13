@@ -28,17 +28,22 @@ BOOL LEDs_Init(void)
 
   SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
 
+  GPIOA_PSOR |= LED_ORANGE_MASK;
+  GPIOA_PSOR |= LED_YELLOW_MASK;
+  GPIOA_PSOR |= LED_GREEN_MASK;
+  GPIOA_PSOR |= LED_BLUE_MASK;
+
   return bTRUE;
 }
 
 void LEDs_On(const TLED color)
 {
-  GPIOA_PSOR |= color;
+  GPIOA_PCOR |= color;
 }
 
 void LEDs_Off(const TLED color)
 {
-  GPIOA_PCOR |= color;
+  GPIOA_PSOR |= color;
 }
 
 void LEDs_Toggle(const TLED color)
