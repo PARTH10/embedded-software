@@ -10,7 +10,7 @@ SOURCES=$IMPORT/Sources/*
 for FILE in $SOURCES
 do
     BASE=$(basename $FILE)
-    sed 's/\r$//' $FILE > $DIR/Sources/$BASE
+    sed 's/\^M$//' $FILE > $DIR/Sources/$BASE
 done
 
 #sed 's/\r$//' $IMPORT/Sources/Cmd.h > $DIR/Sources/Cmd.h
