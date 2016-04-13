@@ -12,6 +12,7 @@
 **  @{
 */
 #include "UART.h"
+#include "types.h"
 
 #include "MK70F12.h"
 
@@ -46,11 +47,13 @@ BOOL UART_Init(const uint32_t baudRate, const uint32_t moduleClk)
 //  UART2_C2 |= UART_C2_SBK_MASK; //Send Break
 
   //Set the requested baud rate
-  uint16_t setting = (uint16_t)(moduleClk/(baudRate * 16));
-  uint8_t setting_high = (setting & 0x1F00) >> 8;
-  uint8_t setting_low = (setting & 0xFF);
-  UART2_BDH = (UART2_BDH & 0xC0) | (setting_high & 0x1F);
-  UART2_BDL = setting_low;
+  uint16union_t setting;
+  setting.l = (uint16_t)(moduleClk/(baudRate * 16));
+  UART2_BDH |= (uint8_t)(setting.s.Hi & 0x1F);
+  UART2_BDL = (uint8_t)setting.s.Lo;
+
+  uint8_t fine_adjust = (uint8_t)((moduleClk * 2) / baudRate) % 32;
+  UART2_C4 = (fine_adjust & 0x1F);
 
   //Initialise the FIFO buffers
   FIFO_Init(&RxFIFO);
