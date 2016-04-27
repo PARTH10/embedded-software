@@ -7,7 +7,10 @@
  *  @author PMcL
  *  @date 2015-08-07
  */
-
+/*!
+**  @addtogroup flash_module Flash module documentation
+**  @{
+*/
 #ifndef FLASH_H
 #define FLASH_H
 
@@ -15,21 +18,23 @@
 #include "types.h"
 
 // FLASH data access
-#define _FB(flashAddress)  *(uint8_t  volatile *)(flashAddress)
-#define _FH(flashAddress)  *(uint16_t volatile *)(flashAddress)
-#define _FW(flashAddress)  *(uint32_t volatile *)(flashAddress)
-#define _FP(flashAddress)  *(uint64_t volatile *)(flashAddress)
+#define _FB(flashAddress)  *(uint8_t  volatile *)(flashAddress)//byte
+#define _FH(flashAddress)  *(uint16_t volatile *)(flashAddress)//word
+#define _FW(flashAddress)  *(uint32_t volatile *)(flashAddress)//Longword 32bit
+#define _FP(flashAddress)  *(uint64_t volatile *)(flashAddress)//Phrase 64bit
 
-// Address of the start of the Flash block we are using for data storage
+// Address of the start (0) of the Flash block we are using for data storage
 #define FLASH_DATA_START 0x00080000LU
 // Address of the end of the Flash block we are using for data storage
 #define FLASH_DATA_END   0x00080007LU
+// The number of bytes in the flash block (currently 8)
+#define FLASH_DATA_SIZE ((FLASH_DATA_END-FLASH_DATA_START)+1)
 
 /*! @brief Enables the Flash module.
  *
  *  @return BOOL - TRUE if the Flash was setup successfully.
  */
-BOOL Flash_Init(void);
+BOOL Flash_Init();
  
 /*! @brief Allocates space for a non-volatile variable in the Flash memory.
  *
@@ -44,7 +49,7 @@ BOOL Flash_Init(void);
  *  @return BOOL - TRUE if the variable was allocated space in the Flash memory.
  *  @note Assumes Flash has been initialized.
  */
-BOOL Flash_AllocateVar(volatile void** variable, const uint8_t size);
+BOOL Flash_AllocateVar(volatile void** variable, const size_t size);
 
 /*! @brief Writes a 32-bit number to Flash.
  *
@@ -78,6 +83,10 @@ BOOL Flash_Write8(volatile uint8_t* const address, const uint8_t data);
  *  @return BOOL - TRUE if the Flash "data" sector was erased successfully.
  *  @note Assumes Flash has been initialized.
  */
-BOOL Flash_Erase(void);
+BOOL Flash_Erase();
+
+/*!
+** @}
+*/
 
 #endif

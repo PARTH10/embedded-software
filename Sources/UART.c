@@ -55,7 +55,7 @@ BOOL UART_Init(const uint32_t baudRate, const uint32_t moduleClk)
   uint8_t fine_adjust = (uint8_t)((moduleClk * 2) / baudRate) % 32;
   UART2_C4 = (fine_adjust & 0x1F);
 
-  //Initialise the FIFO buffers
+  //Initialize the FIFO buffers
   FIFO_Init(&RxFIFO);
   FIFO_Init(&TxFIFO);
 

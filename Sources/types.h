@@ -12,6 +12,7 @@
 #define TYPES_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 // Unions to efficiently access hi and lo parts of integers and words
 typedef union
@@ -44,6 +45,19 @@ typedef union
     uint16_t Hi;
   } s;
 } uint32union_t;
+
+// Union to efficiently access bytes of a long integer
+typedef union
+{
+  uint32_t l;
+  struct
+  {
+    uint8_t d;
+    uint8_t c;
+    uint8_t b;
+		uint8_t a;
+  } s;
+} uint32_8union_t;
 
 // Union to efficiently access individual bytes of a float
 typedef union

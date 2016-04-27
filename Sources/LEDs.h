@@ -7,7 +7,10 @@
  *  @author PMcL
  *  @date 2015-08-15
  */
-
+/*!
+**  @addtogroup cmd_module CMD module documentation
+**  @{
+*/
 #ifndef LEDS_H
 #define LEDS_H
 
@@ -60,5 +63,9 @@ void LEDs_Off(const TLED color);
  *  @note Assumes that LEDs_Init has been called.
  */
 void LEDs_Toggle(const TLED color);
+
+/*!
+** @}
+*/
 
 #endif

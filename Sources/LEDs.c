@@ -1,9 +1,14 @@
-/*
- * LEDs.c
+/*! @file
  *
- *  Created on: 6 Apr 2016
- *      Author: 11848759
+ *  @brief Implementations of functions which control the LEDs.
+ *
+ *  @author Robin Wohlers-Reichel, Joshua Gonsalves
+ *  @date 2016-03-23
  */
+/*!
+**  @addtogroup led_module LEDs module documentation
+**  @{
+*/
 #include "LEDs.h"
 
 #include "MK70F12.h"
@@ -26,8 +31,10 @@ BOOL LEDs_Init(void)
   GPIOA_PDDR |= LED_GREEN_MASK;
   GPIOA_PDDR |= LED_BLUE_MASK;
 
+  //Turn port A on
   SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
 
+  //Turn off all LEDs
   GPIOA_PSOR |= LED_ORANGE_MASK;
   GPIOA_PSOR |= LED_YELLOW_MASK;
   GPIOA_PSOR |= LED_GREEN_MASK;
@@ -51,3 +58,6 @@ void LEDs_Toggle(const TLED color)
   GPIOA_PTOR |= color;
 }
 
+/*!
+** @}
+*/
