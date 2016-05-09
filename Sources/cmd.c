@@ -13,6 +13,7 @@
 
 #include "flash.h"
 #include "packet.h"
+#include "RTC.h"
 #include "types.h"
 
 /*
@@ -43,7 +44,28 @@ BOOL CMD_Init()
 	return bFALSE;
 }
 
-BOOL CMD_RX_Flash_Program_Byte(const uint8_t offset, const uint8_t data)
+BOOL CMD_SpecialGetStartupValues()
+{
+	if (!Packet_Put(CMD_TX_TOWER_STARTUP, 0x0, 0x0, 0x0))
+	{
+		return bFALSE;
+	}
+	if (!CMD_SpecialTowerVersion())
+	{
+		return bFALSE;
+	}
+	if (!Packet_Put(CMD_TX_TOWER_NUMBER, 1, TowerNumber->s.Lo, TowerNumber->s.Hi))
+	{
+		return bFALSE;
+	}
+	if (!Packet_Put(CMD_TX_TOWER_MODE, 0x1, TowerMode->s.Lo, TowerMode->s.Hi))
+	{
+		return bFALSE;
+	}
+	return bTRUE;
+}
+
+BOOL CMD_FlashProgramByte(const uint8_t offset, const uint8_t data)
 {
 	if (offset > 8)// Change 8 to FLASH_DATA_SIZE for dynamicness
 	{
@@ -57,55 +79,67 @@ BOOL CMD_RX_Flash_Program_Byte(const uint8_t offset, const uint8_t data)
 	return Flash_Write8(address, data);
 }
 
-BOOL CMD_RX_Flash_Read_Byte(const uint8_t offset, uint8_t * const data)
+BOOL CMD_FlashReadByte(const uint8_t offset)
 {
   if (offset > (FLASH_DATA_SIZE - 1))
   {
   	return bFALSE;
   }
-  *data = _FB(FLASH_DATA_START + offset);
-  return bTRUE;
+  uint8_t data = _FB(FLASH_DATA_START + offset);
+  return Packet_Put(CMD_TX_FLASH_READ_BYTE, offset, 0x0, data);
 }
 
-BOOL CMD_RX_Tower_Number(uint8_t lsb, uint8_t msb)
+BOOL CMD_TowerNumber(uint8_t mode, uint8_t lsb, uint8_t msb)
 {
-	uint16union_t temp;
-	temp.s.Hi = msb;
-	temp.s.Lo = lsb;
-	return Flash_Write16((uint16_t volatile *) TowerNumber, temp.l);
+	if (mode == CMD_TOWER_NUMBER_GET)
+	{
+		return Packet_Put(CMD_TX_TOWER_NUMBER, 1, TowerNumber->s.Lo, TowerNumber->s.Hi);
+	}
+	else if (mode == CMD_TOWER_NUMBER_SET)
+	{
+		uint16union_t temp;
+		temp.s.Hi = msb;
+		temp.s.Lo = lsb;
+		return Flash_Write16((uint16_t volatile *) TowerNumber, temp.l);
+	}
+	return bFALSE;
 }
 
-BOOL CMD_RX_Tower_Mode(const uint8_t lsb, const uint8_t msb)
+BOOL CMD_TowerMode(const uint8_t mode, const uint8_t lsb, const uint8_t msb)
 {
-	uint16union_t temp;
-	temp.s.Hi = msb;
-	temp.s.Lo = lsb;
-	return Flash_Write16((uint16_t volatile *) TowerMode, temp.l);
+	if (mode == CMD_TOWER_MODE_GET)
+	{
+		return Packet_Put(CMD_TX_TOWER_MODE, 0x1, TowerMode->s.Lo, TowerMode->s.Hi);
+	}
+	else if (mode == CMD_TOWER_NUMBER_SET)
+	{
+		uint16union_t temp;
+		temp.s.Hi = msb;
+		temp.s.Lo = lsb;
+		return Flash_Write16((uint16_t volatile *) TowerMode, temp.l);
+	}
+	return bFALSE;
 }
 
-BOOL CMD_TX_Startup_Packet()
+BOOL CMD_StartupPacket()
 {
   return Packet_Put(CMD_TX_TOWER_STARTUP, 0x0, 0x0, 0x0);
 }
 
-BOOL CMD_TX_Flash_Read_Byte(const uint8_t offset, const uint8_t data)
+BOOL CMD_SpecialTowerVersion()
 {
-	return Packet_Put(CMD_TX_FLASH_READ_BYTE, offset, 0x0, data);
+  return Packet_Put(CMD_TX_SPECIAL_TOWER_VERSION, 'v', TOWER_VERSION_H, TOWER_VERISON_L);
 }
 
-BOOL CMD_TX_Special_Tower_Version()
+BOOL CMD_SendTime(const uint8_t hours, const uint8_t minutes, const uint8_t seconds)
 {
-  return Packet_Put(CMD_TX_TOWER_VERSION, 'v', TOWER_VERSION_H, TOWER_VERISON_L);
+	return Packet_Put(CMD_TX_TIME, hours, minutes, seconds);
 }
 
-BOOL CMD_TX_Tower_Number()
+BOOL CMD_SetTime(const uint8_t hours, const uint8_t minutes, const uint8_t seconds)
 {
-  return Packet_Put(CMD_TX_TOWER_NUMBER, 1, TowerNumber->s.Lo, TowerNumber->s.Hi);
-}
-
-BOOL CMD_TX_Tower_Mode()
-{
-	return Packet_Put(CMD_TX_TOWER_MODE, 0x1, TowerMode->s.Lo, TowerMode->s.Hi);
+	RTC_Set(hours, minutes, seconds);
+	return bTRUE;
 }
 
 /*!

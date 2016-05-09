@@ -30,6 +30,8 @@
 // CPU mpdule - contains low level hardware initialization routines
 #include "Cpu.h"
 #include "Events.h"
+#include "INT_UART2_RX_TX.h"
+#include "INT_RTC_Seconds.h"
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
@@ -39,12 +41,8 @@
 #include "flash.h"
 #include "LEDs.h"
 #include "packet.h"
+#include "RTC.h"
 #include "UART.h"
-
-/*!
- * @brief It would be such a shame to waste the LEDs.
- */
-#define BLINKENLIGHTS
 
 const static uint32_t BAUD_RATE = 115200;
 const static uint32_t MODULE_CLOCK = CPU_BUS_CLK_HZ;
@@ -59,63 +57,29 @@ void Packet_Handle()
 	//mask out the ack, otherwise it goes to default
 	switch (Packet_Command & ~PACKET_ACK_MASK)
 	{
-	case CMD_RX_GET_SPECIAL_START_VAL:
-		CMD_TX_Startup_Packet();
-		CMD_TX_Special_Tower_Version();
-		CMD_TX_Tower_Number();
-		CMD_TX_Tower_Mode();
-		error = bFALSE;
+	case CMD_RX_SPECIAL_GET_STARTUP_VALUES:
+		error = !CMD_SpecialGetStartupValues();
 		break;
 	case CMD_RX_FLASH_PROGRAM_BYTE:
-		error = !CMD_RX_Flash_Program_Byte(Packet_Parameter1, Packet_Parameter3);
+		error = !CMD_FlashProgramByte(Packet_Parameter1, Packet_Parameter3);
 		break;
 	case CMD_RX_FLASH_READ_BYTE:
-		error = !CMD_RX_Flash_Read_Byte(Packet_Parameter1, &data);
-		if (error == bFALSE)
-		{
-			error = !CMD_TX_Flash_Read_Byte(Packet_Parameter1, data);
-		}
+		error = !CMD_FlashReadByte(Packet_Parameter1);
 		break;
-	case CMD_RX_GET_VERSION:
-		error = !CMD_TX_Special_Tower_Version();
+	case CMD_RX_SPECIAL_GET_VERSION:
+		error = !CMD_SpecialTowerVersion();
 		break;
 	case CMD_RX_TOWER_NUMBER:
-		if (Packet_Parameter1 == CMD_TOWER_NUMBER_GET)
-		{
-			error = !CMD_TX_Tower_Number();
-		}
-		else if (Packet_Parameter1 == CMD_TOWER_NUMBER_SET)
-		{
-			error = !CMD_RX_Tower_Number(Packet_Parameter2, Packet_Parameter3);
-		}
+		error = !CMD_TowerNumber(Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
 		break;
 	case CMD_RX_TOWER_MODE:
-		if (Packet_Parameter1 == CMD_TOWER_MODE_GET)
-		{
-			error = !CMD_TX_Tower_Mode();
-		}
-		else if (Packet_Parameter1 == CMD_TOWER_NUMBER_SET)
-		{
-			error = !CMD_RX_Tower_Mode(Packet_Parameter2, Packet_Parameter3);
-		}
+		error = !CMD_TowerMode(Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
 		break;
+	case CMD_RX_SET_TIME:
+		error = !CMD_SetTime(Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
 	default:
 		break;
 	}
-
-#ifdef BLINKENLIGHTS
-	//Error visualization
-	if (!error)
-	{
-		LEDs_Off(LED_YELLOW);
-		LEDs_On(LED_GREEN);
-	}
-	else
-	{
-		LEDs_On(LED_YELLOW);
-		LEDs_Off(LED_GREEN);
-	}
-#endif
 
 	if (Packet_Command & PACKET_ACK_MASK)
 	{
@@ -133,6 +97,19 @@ void Packet_Handle()
 	}
 }
 
+void rtcCallback(void *arguments)
+{
+	uint8_t h, m, s;
+	RTC_Get(&h, &m, &s);
+	CMD_SendTime(h, m, s);
+	LEDs_Toggle(LED_YELLOW);
+}
+
+void pitCallback(void *arguments)
+{
+	LEDs_Toggle(LED_GREEN);
+}
+
 /*lint -save  -e970 Disable MISRA rule (6.3) checking. */
 /*!
  * @brief The entry point into the program.
@@ -143,34 +120,38 @@ int main(void)
   /* Write your local variable definition here */
 
   /*** Processor Expert internal initialization. DON'T REMOVE THIS CODE!!! ***/
-  PE_low_level_init();
+	PE_low_level_init();
   /*** End of Processor Expert internal initialization.                    ***/
 
   /* Write your code here */
 
   //Initialize all the modules
-  Packet_Init(BAUD_RATE, MODULE_CLOCK);
   LEDs_Init();
+  Packet_Init(BAUD_RATE, MODULE_CLOCK);
   Flash_Init();
   CMD_Init();
 
-  CMD_TX_Startup_Packet();
-  CMD_TX_Special_Tower_Version();
-  CMD_TX_Tower_Number();
-  CMD_TX_Tower_Mode();
+  //Best to do this one last
+  RTC_Init(&rtcCallback, (void *)0);
+
+  CMD_SpecialGetStartupValues();
 
   LEDs_On(LED_ORANGE);
 
 	for (;;)
 	{
-		UART_Poll();
 		if (Packet_Get())
 		{
-#ifdef BLINKENLIGHTS
-			LEDs_Toggle(LED_BLUE);
-#endif
 			Packet_Handle();
 		}
+//		if (clockInterrupt)
+//		{
+//			clockInterrupt = bFALSE;
+//			uint8_t h, m, s;
+//			RTC_Get(&h, &m, &s);
+//			CMD_TX_Time(h, m, s);
+//			LEDs_Toggle(LED_YELLOW);
+//		}
 	}
 
   /*** Don't write any code pass this line, or it will be deleted during code generation. ***/

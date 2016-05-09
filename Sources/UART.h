@@ -45,12 +45,11 @@ BOOL UART_InChar(uint8_t * const dataPtr);
  */
 BOOL UART_OutChar(const uint8_t data);
 
-/*! @brief Poll the UART status register to try and receive and/or transmit one character.
+/*! @brief Interrupt service routine for the UART.
  *
- *  @return void
- *  @note Assumes that UART_Init has been called.
+ *  @note Assumes the transmit and receive FIFOs have been initialized.
  */
-void UART_Poll(void);
+void __attribute__ ((interrupt)) UART_ISR(void);
 
 /*!
 ** @}

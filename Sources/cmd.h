@@ -14,38 +14,9 @@
 
 #include "types.h"
 
- /*!
-  * The PC will issue this command upon startup
-  * to retrieve the state of the Tower to update
-  * the interface application.
-  * */
-#define CMD_RX_GET_SPECIAL_START_VAL 0x4
-
-/*!
- * Program a byte of flash
+/*****************************************
+ * Packets Transmitted from Tower to PC
  */
-#define CMD_RX_FLASH_PROGRAM_BYTE 0x7
-
-/*!
- * Read a byte of flash
- */
-#define CMD_RX_FLASH_READ_BYTE 0x8
-
-/*!
- * Get the version of the Tower software.
- */
-#define CMD_RX_GET_VERSION 0x9
-
-/*!
- * Get or set the Student ID associated with
- * the Tower software.
- */
-#define CMD_RX_TOWER_NUMBER 0xb
-
-/*!
- * Get or set the tower mode
- */
-#define CMD_RX_TOWER_MODE 0xd
 
 /*!
  * The Tower will issue this command upon startup to
@@ -53,27 +24,74 @@
  * and the Tower. Typically, setup data will also be
  * sent from the Tower to the PC.
  */
-#define CMD_TX_TOWER_STARTUP 0x4
+#define CMD_TX_TOWER_STARTUP 0x04
 
 /*!
  * Send the result of a flash read operation
  */
-#define CMD_TX_FLASH_READ_BYTE 0x8
+#define CMD_TX_FLASH_READ_BYTE 0x08
 
 /*!
  * Send the tower version to the PC.
  */
-#define CMD_TX_TOWER_VERSION 0x9
+#define CMD_TX_SPECIAL_TOWER_VERSION 0x09
 
 /*!
  * Send the tower number to the PC.
  */
-#define CMD_TX_TOWER_NUMBER 0xb
+#define CMD_TX_TOWER_NUMBER 0x0b
+
+/*!
+ * Send the current time of the RTC
+ */
+#define CMD_TX_TIME 0x0c
 
 /*!
  * Send the tower mode to the PC application
  */
-#define CMD_TX_TOWER_MODE 0xd
+#define CMD_TX_TOWER_MODE 0x0d
+
+/*****************************************
+ * Packets Transmitted from PC to Tower
+ */
+
+ /*!
+  * The PC will issue this command upon startup
+  * to retrieve the state of the Tower to update
+  * the interface application.
+  * */
+#define CMD_RX_SPECIAL_GET_STARTUP_VALUES 0x04
+
+/*!
+ * Program a byte of flash
+ */
+#define CMD_RX_FLASH_PROGRAM_BYTE 0x07
+
+/*!
+ * Read a byte of flash
+ */
+#define CMD_RX_FLASH_READ_BYTE 0x08
+
+/*!
+ * Get the version of the Tower software.
+ */
+#define CMD_RX_SPECIAL_GET_VERSION 0x09
+
+/*!
+ * Get or set the Student ID associated with
+ * the Tower software.
+ */
+#define CMD_RX_TOWER_NUMBER 0x0b
+
+/*!
+ * Set the time of the RTC
+ */
+#define CMD_RX_SET_TIME 0x0c
+
+/*!
+ * Get or set the tower mode
+ */
+#define CMD_RX_TOWER_MODE 0x0d
 
 /*!
  * Packet parameter 1 to get tower number.
@@ -107,30 +125,37 @@
 BOOL CMD_Init();
 
 /*!
+ * @brief Send the special startup values.
+ * @return BOOL TRUE if the operation succeeded.
+ */
+BOOL CMD_SpecialGetStartupValues();
+
+/*!
  * @brief Programs a byte of flash at the specified offset.
  * @param offset Offset of the byte from the start of the sector.
  * @param data The byte to write.
  * @note An offset greater than 7 will erase the sector.
  * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_RX_Flash_Program_Byte(const uint8_t offset, const uint8_t data);
+BOOL CMD_FlashProgramByte(const uint8_t offset, const uint8_t data);
 
 /*!
- * @brief Read a byte of the flash.
+ * @brief Read a byte of the flash and send it over the UART.
  * @param offset Offset of the byte from the start of the sector.
  * @param data The address to read the value into.
  * @note An offset past the end of the flash will fail.
  * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_RX_Flash_Read_Byte(const uint8_t offset, uint8_t * const data);
+BOOL CMD_FlashReadByte(const uint8_t offset);
 
 /*!
  * @brief Saves the tower number to a buffer.
+ * @param mode Getting or setting.
  * @param lsb Least significant byte of the Tower number
  * @param msb Most significant byte of the Tower number
  * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_RX_Tower_Number(uint8_t lsb, uint8_t msb);
+BOOL CMD_TowerNumber(uint8_t mode, uint8_t lsb, uint8_t msb);
 
 /*!
  * @brief Set the tower mode and save to flash.
@@ -138,39 +163,37 @@ BOOL CMD_RX_Tower_Number(uint8_t lsb, uint8_t msb);
  * @param msb The most significant byte.
  * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_RX_Tower_Mode(const uint8_t lsb, const uint8_t msb);
+BOOL CMD_TowerMode(const uint8_t mode, const uint8_t lsb, const uint8_t msb);
 
 /*!
  * @brief Sends the startup packet to the computer.
  * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_TX_Startup_Packet();
-
-/*!
- * @brief Read a byte of flash at the specified address
- * @param offset The offset of the byte which is being transmitted.
- * @param data The actual byte.
- * @return BOOL TRUE if the operation succeeded.
- */
-BOOL CMD_TX_Flash_Read_Byte(const uint8_t offset, const uint8_t data);
+BOOL CMD_StartupPacket();
 
 /*!
  * @brief Sends the tower version to the computer.
  * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_TX_Special_Tower_Version();
+BOOL CMD_SpecialTowerVersion();
 
 /*!
- * @brief Sends the tower number to the computer.
- * @return BOOL TRUE if success.
+ * @brief Sends the time to the pc.
+ * @param hours The count of hours which have elapsed.
+ * @param minutes The count of minutes which have elapsed.
+ * @param seconds The number of seconds which have elapsed.
+ * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_TX_Tower_Number();
+BOOL CMD_SendTime(const uint8_t hours, const uint8_t minutes, const uint8_t seconds);
 
 /*!
- * @brief Get the tower mode and save to flash.
- * @return BOOL TRUE if success.
+ * @brief Set the time of the RTC.
+ * @param hours The count of hours which have elapsed.
+ * @param minutes The count of minutes which have elapsed.
+ * @param seconds The number of seconds which have elapsed.
+ * @return BOOL TRUE if the operation succeeded.
  */
-BOOL CMD_TX_Tower_Mode();
+BOOL CMD_SetTime(const uint8_t hours, const uint8_t minutes, const uint8_t seconds);
 
 
 /*!

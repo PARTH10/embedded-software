@@ -12,6 +12,7 @@
 **  @{
 */
 #include "UART.h"
+
 #include "types.h"
 
 #include "MK70F12.h"
@@ -38,8 +39,8 @@ BOOL UART_Init(const uint32_t baudRate, const uint32_t moduleClk)
 //  UART2_C1 |= UART_C1_PT_MASK; //Parity Type
 
 //  UART2_C2 |= UART_C2_TIE_MASK; //Transmitter Interrupt or DMA Transfer Requests
-//  UART2_C2 |= UART_C2_TCIE_MASK; //Transmission Complete Interrupt Enable
-//  UART2_C2 |= UART_C2_RIE_MASK; //Receiver Full Interrupt or DMA Transfer Enable
+  UART2_C2 |= UART_C2_TCIE_MASK; //Transmission Complete Interrupt Enable
+  UART2_C2 |= UART_C2_RIE_MASK; //Receiver Full Interrupt or DMA Transfer Enable
 //  UART2_C2 |= UART_C2_ILIE_MASK; //Idle Line Interrupt Enable
   UART2_C2 |= UART_C2_RE_MASK; // Enable UART2 receive.
   UART2_C2 |= UART_C2_TE_MASK; // Enable UART2 transmit.
@@ -69,19 +70,27 @@ BOOL UART_InChar(uint8_t * const dataPtr)
 
 BOOL UART_OutChar(const uint8_t data)
 {
-  return FIFO_Put(&TxFIFO, data);
+	if (FIFO_Put(&TxFIFO, data))
+	{
+		UART2_C2 |= UART_C2_TCIE_MASK;
+		return bTRUE;
+	}
+	return bFALSE;
 }
 
-void UART_Poll()
+void __attribute__ ((interrupt)) UART_ISR(void)
 {
-  if (UART2_S1 & UART_S1_TDRE_MASK)
-  {
-      FIFO_Get(&TxFIFO, &UART2_D);
-  }
-  if (UART2_S1 & UART_S1_RDRF_MASK)
-  {
-      FIFO_Put(&RxFIFO, UART2_D);
-  }
+	if (UART2_S1 & UART_S1_TDRE_MASK)
+	{
+		if (FIFO_Get(&TxFIFO, &UART2_D) == bFALSE)
+		{
+			UART2_C2 &= ~UART_C2_TCIE_MASK;
+		}
+	}
+	if (UART2_S1 & UART_S1_RDRF_MASK)
+	{
+		FIFO_Put(&RxFIFO, UART2_D);
+	}
 }
 
 /*!

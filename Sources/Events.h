@@ -33,6 +33,8 @@
 #include "PE_Error.h"
 #include "PE_Const.h"
 #include "IO_Map.h"
+#include "INT_UART2_RX_TX.h"
+#include "INT_RTC_Seconds.h"
 
 #ifdef __cplusplus
 extern "C" {
