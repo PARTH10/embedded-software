@@ -8,29 +8,35 @@
  *  @date 2016-04-27
  */
 
-#include "RTC.h"
-
-#include "cmd.h"
-#include "LEDs.h"
 #include "MK70F12.h"
+#include <stdint.h>
+#include <types.h>
+#include "RTC.h"
+#include "LEDs.h"
 
-static void (*callback)(void *);
-static void *arguments;
-static BOOL initialized = bFALSE;
+static void (*Callback)(void *);
+static void *Arguments;
+static BOOL Initialized = bFALSE;
 
 BOOL RTC_Init(void (*userFunction)(void*), void* userArguments)
 {
-	callback = userFunction;
-	arguments = userArguments;
+	Callback = userFunction;
+	Arguments = userArguments;
+
 	RTC_IER |= RTC_IER_TSIE_MASK; //Sets the interrupt
 	RTC_IER &= ~RTC_IER_TAIE_MASK; //Disable Time Alarm Interrupt
 	RTC_IER &= ~RTC_IER_TOIE_MASK; //Time Overflow Interrupt Interrupt
 	RTC_IER &= ~RTC_IER_TIIE_MASK; //Time Invalid Interrupt
 
+	//Clear the error if the invalid timer flag is set.
+	if (RTC_SR & RTC_SR_TIF_MASK) {
+		RTC_TSR = 0;
+	}
+
 	RTC_LR &= ~RTC_LR_CRL_MASK; // Lock control register
 	RTC_SR |= RTC_SR_TCE_MASK; //Init timer control
 
-	initialized = bTRUE;
+	Initialized = bTRUE;
 	return bTRUE;
 }
 
@@ -53,9 +59,9 @@ void RTC_Get(uint8_t* const hours, uint8_t* const minutes, uint8_t* const second
 void __attribute__ ((interrupt)) RTC_ISR(void)
 {
 	//Don't try to run code at 0x0
-	if (initialized == bFALSE)
+	if (Initialized == bFALSE)
 	{
 		return;
 	}
-	(*callback)(arguments);
+	(*Callback)(Arguments);
 }

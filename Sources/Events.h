@@ -35,6 +35,8 @@
 #include "IO_Map.h"
 #include "INT_UART2_RX_TX.h"
 #include "INT_RTC_Seconds.h"
+#include "INT_PIT0.h"
+#include "INT_FTM0.h"
 
 #ifdef __cplusplus
 extern "C" {

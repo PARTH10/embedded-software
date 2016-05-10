@@ -50,6 +50,16 @@ typedef struct
   void *userArguments;
 } TTimer;
 
+/*!
+ * @brief No clock; stopped.
+ */
+#define FTM_SC_CLKS_NO_CLOCK 0
+
+/*!
+ * @brief the internal slow clock.
+ */
+#define FTM_SC_CLKS_FIXED_FREQUENCY_CLOCK 2
+
 
 /*! @brief Sets up the FTM before first use.
  *

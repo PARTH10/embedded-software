@@ -32,6 +32,8 @@
 #include "Events.h"
 #include "INT_UART2_RX_TX.h"
 #include "INT_RTC_Seconds.h"
+#include "INT_PIT0.h"
+#include "INT_FTM0.h"
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
@@ -41,16 +43,30 @@
 #include "flash.h"
 #include "LEDs.h"
 #include "packet.h"
+#include "PIT.h"
 #include "RTC.h"
+#include "timer.h"
 #include "UART.h"
 
 const static uint32_t BAUD_RATE = 115200;
 const static uint32_t MODULE_CLOCK = CPU_BUS_CLK_HZ;
 
+void BlueOff(void *arguments)
+{
+	LEDs_Off(LED_BLUE);
+}
+
+const static TTimer PacketTimer = {0,
+																 24414,
+																 TIMER_FUNCTION_OUTPUT_COMPARE,
+																 TIMER_OUTPUT_DISCONNECT,
+																 &BlueOff,
+																 (void *)0};
+
 /*!
  * Handle incoming packets
  */
-void Packet_Handle()
+void HandlePacket()
 {
 	BOOL error = bTRUE;
 	uint8_t data;
@@ -97,7 +113,7 @@ void Packet_Handle()
 	}
 }
 
-void rtcCallback(void *arguments)
+void RtcCallback(void *arguments)
 {
 	uint8_t h, m, s;
 	RTC_Get(&h, &m, &s);
@@ -105,7 +121,7 @@ void rtcCallback(void *arguments)
 	LEDs_Toggle(LED_YELLOW);
 }
 
-void pitCallback(void *arguments)
+void PitCallback(void *arguments)
 {
 	LEDs_Toggle(LED_GREEN);
 }
@@ -127,12 +143,20 @@ int main(void)
 
   //Initialize all the modules
   LEDs_Init();
+
+  PIT_Init(MODULE_CLOCK, &PitCallback, (void *)0);
+  PIT_Set(500000000, bFALSE);
+  PIT_Enable(bTRUE);
+
   Packet_Init(BAUD_RATE, MODULE_CLOCK);
   Flash_Init();
   CMD_Init();
 
   //Best to do this one last
-  RTC_Init(&rtcCallback, (void *)0);
+  RTC_Init(&RtcCallback, (void *)0);
+
+  Timer_Init();
+  Timer_Set(&PacketTimer);
 
   CMD_SpecialGetStartupValues();
 
@@ -142,16 +166,10 @@ int main(void)
 	{
 		if (Packet_Get())
 		{
-			Packet_Handle();
+			LEDs_On(LED_BLUE);
+			Timer_Start(&PacketTimer);
+			HandlePacket();
 		}
-//		if (clockInterrupt)
-//		{
-//			clockInterrupt = bFALSE;
-//			uint8_t h, m, s;
-//			RTC_Get(&h, &m, &s);
-//			CMD_TX_Time(h, m, s);
-//			LEDs_Toggle(LED_YELLOW);
-//		}
 	}
 
   /*** Don't write any code pass this line, or it will be deleted during code generation. ***/

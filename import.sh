@@ -7,18 +7,18 @@ IMPORT=${1}
 
 SOURCES=$IMPORT/Sources/*
 
-for FILE in $SOURCES
+for AFILE in $SOURCES
 do
-    BASE=$(basename $FILE)
-    sed 's/\^M$//' $FILE > $DIR/Sources/$BASE
+    BASES=$(basename $AFILE)
+    sed 's/\^M$//' $AFILE > $DIR/Sources/$BASES
 done
 
 GEN=$IMPORT/Generated_Code/*
 
-for FILE in $GEN
+for BFILE in $GEN
 do
-    BASE=$(basename $FILE)
-    sed 's/\^M$//' $FILE > $DIR/Generated_Code/$BASE
+    BASEG=$(basename $BFILE)
+    sed 's/\^M$//' $BFILE > $DIR/Generated_Code/$BASEG
 done
 
 #sed 's/\r$//' $IMPORT/Sources/Cmd.h > $DIR/Sources/Cmd.h
