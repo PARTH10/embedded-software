@@ -6,7 +6,7 @@
 **     Version     : Component 01.028, Driver 01.04, CPU db: 3.00.000
 **     Repository  : Kinetis
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2016-03-22, 14:47, # CodeGen: 11
+**     Date/Time   : 2016-05-04, 11:42, # CodeGen: 39
 **     Abstract    :
 **
 **     Settings    :
@@ -55,6 +55,9 @@
 */         
 
   #include "Cpu.h"
+  #include "INT_UART2_RX_TX.h"
+  #include "INT_RTC_Seconds.h"
+  #include "INT_PIT0.h"
   #include "Events.h"
 
 
@@ -139,7 +142,7 @@
     (tIsrFunc)&Cpu_Interrupt,          /* 0x3E  0x000000F8   -   ivINT_UART0_ERR                unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x3F  0x000000FC   -   ivINT_UART1_RX_TX              unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x40  0x00000100   -   ivINT_UART1_ERR                unused by PE */
-    (tIsrFunc)&Cpu_Interrupt,          /* 0x41  0x00000104   -   ivINT_UART2_RX_TX              unused by PE */
+    (tIsrFunc)&UART_ISR,               /* 0x41  0x00000104   8   ivINT_UART2_RX_TX              used by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x42  0x00000108   -   ivINT_UART2_ERR                unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x43  0x0000010C   -   ivINT_UART3_RX_TX              unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x44  0x00000110   -   ivINT_UART3_ERR                unused by PE */
@@ -157,8 +160,8 @@
     (tIsrFunc)&Cpu_Interrupt,          /* 0x50  0x00000140   -   ivINT_FTM2                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x51  0x00000144   -   ivINT_CMT                      unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x52  0x00000148   -   ivINT_RTC                      unused by PE */
-    (tIsrFunc)&Cpu_Interrupt,          /* 0x53  0x0000014C   -   ivINT_RTC_Seconds              unused by PE */
-    (tIsrFunc)&Cpu_Interrupt,          /* 0x54  0x00000150   -   ivINT_PIT0                     unused by PE */
+    (tIsrFunc)&RTC_ISR,                /* 0x53  0x0000014C   8   ivINT_RTC_Seconds              used by PE */
+    (tIsrFunc)&PIT_ISR,                /* 0x54  0x00000150   8   ivINT_PIT0                     used by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x55  0x00000154   -   ivINT_PIT1                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x56  0x00000158   -   ivINT_PIT2                     unused by PE */
     (tIsrFunc)&Cpu_Interrupt,          /* 0x57  0x0000015C   -   ivINT_PIT3                     unused by PE */
