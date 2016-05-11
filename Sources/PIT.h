@@ -7,7 +7,10 @@
  *  @author PMcL
  *  @date 2015-08-22
  */
-
+/*!
+**  @addtogroup pit_module UART module documentation
+**  @{
+*/
 #ifndef PIT_H
 #define PIT_H
 
@@ -49,3 +52,7 @@ void PIT_Enable(const BOOL enable);
 void __attribute__ ((interrupt)) PIT_ISR(void);
 
 #endif
+
+/*!
+** @}
+*/

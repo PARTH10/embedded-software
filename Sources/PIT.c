@@ -7,7 +7,10 @@
  *  @author Josh Gonsalves, Robin Wohlers-Reichel
  *  @date 2016-04-27
  */
-
+/*!
+**  @addtogroup pit_module UART module documentation
+**  @{
+*/
 #include "PIT.h"
 #include "MK70F12.h"
 
@@ -39,7 +42,8 @@ void PIT_Set(const uint32_t period, const BOOL restart)
 
 	PIT_LDVAL0 = PIT_LDVAL_TSV(triggerValue);
 
-	if (restart) {
+	if (restart)
+	{
 		PIT_TCTRL0 &= ~PIT_TCTRL_TEN_MASK;
 		PIT_TCTRL0 |= PIT_TCTRL_TEN_MASK;
 	}
@@ -60,10 +64,14 @@ void PIT_Enable(const BOOL enable)
 void __attribute__ ((interrupt)) PIT_ISR(void)
 {
 	//Don't try to run code at 0x0
-	if (Initialized == bFALSE)
+	if (!Initialized)
 	{
 		return;
 	}
 	(*Callback)(Arguments);
 	PIT_TFLG0 = PIT_TFLG_TIF_MASK;
 }
+
+/*!
+** @}
+*/

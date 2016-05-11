@@ -7,7 +7,10 @@
  *  @author Josh Gonsalves, Robin Wohlers-Reichel
  *  @date 2016-04-27
  */
-
+/*!
+**  @addtogroup rtc_module RTC module documentation
+**  @{
+*/
 #include "MK70F12.h"
 #include <stdint.h>
 #include <types.h>
@@ -29,7 +32,8 @@ BOOL RTC_Init(void (*userFunction)(void*), void* userArguments)
 	RTC_IER &= ~RTC_IER_TIIE_MASK; //Time Invalid Interrupt
 
 	//Clear the error if the invalid timer flag is set.
-	if (RTC_SR & RTC_SR_TIF_MASK) {
+	if (RTC_SR & RTC_SR_TIF_MASK)
+	{
 		RTC_TSR = 0;
 	}
 
@@ -65,3 +69,8 @@ void __attribute__ ((interrupt)) RTC_ISR(void)
 	}
 	(*Callback)(Arguments);
 }
+
+/*!
+** @}
+*/
+

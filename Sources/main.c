@@ -53,7 +53,7 @@ const static uint32_t MODULE_CLOCK = CPU_BUS_CLK_HZ;
 
 void BlueOff(void *arguments)
 {
-	LEDs_Off(LED_BLUE);
+	LEDs_Toggle(LED_BLUE);
 }
 
 const static TTimer PacketTimer = {0,
@@ -64,7 +64,7 @@ const static TTimer PacketTimer = {0,
 																 (void *)0};
 
 /*!
- * Handle incoming packets
+ * @brief Handle incoming packets
  */
 void HandlePacket()
 {

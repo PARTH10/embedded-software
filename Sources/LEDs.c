@@ -6,21 +6,16 @@
  *  @date 2016-03-23
  */
 /*!
-**  @addtogroup led_module LEDs module documentation
+**  @addtogroup leds_module LEDs module documentation
 **  @{
 */
 #include "LEDs.h"
 
 #include "MK70F12.h"
 
-/*!
- * @brief Initalises the LEDS, sets their wires as OP
- *
- */
 BOOL LEDs_Init(void)
 {
-  //TODO: comment here
-  PORTA_PCR10 |= PORT_PCR_MUX(1); //initalises led
+  PORTA_PCR10 |= PORT_PCR_MUX(1); //Initializes led
   PORTA_PCR11 |= PORT_PCR_MUX(1);
   PORTA_PCR28 |= PORT_PCR_MUX(1);
   PORTA_PCR29 |= PORT_PCR_MUX(1);

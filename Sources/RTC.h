@@ -7,7 +7,10 @@
  *  @author PMcL
  *  @date 2015-08-24
  */
-
+/*!
+**  @addtogroup rtc_module RTC module documentation
+**  @{
+*/
 #ifndef RTC_H
 #define RTC_H
 
@@ -22,7 +25,7 @@
  *  @param userArguments is a pointer to the user arguments to use with the user callback function.
  *  @return BOOL - TRUE if the RTC was successfully initialized.
  */
-BOOL RTC_Init();//void (*userFunction)(void*), void* userArguments);
+BOOL RTC_Init(void (*userFunction)(void*), void* userArguments);
 
 /*! @brief Sets the value of the real time clock.
  *
@@ -51,3 +54,7 @@ void RTC_Get(uint8_t* const hours, uint8_t* const minutes, uint8_t* const second
 void __attribute__ ((interrupt)) RTC_ISR(void);
 
 #endif
+
+/*!
+** @}
+*/

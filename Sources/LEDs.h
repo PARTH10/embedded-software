@@ -8,7 +8,7 @@
  *  @date 2015-08-15
  */
 /*!
-**  @addtogroup cmd_module CMD module documentation
+**  @addtogroup leds_module LEDs module documentation
 **  @{
 */
 #ifndef LEDS_H

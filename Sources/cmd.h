@@ -142,7 +142,6 @@ BOOL CMD_FlashProgramByte(const uint8_t offset, const uint8_t data);
 /*!
  * @brief Read a byte of the flash and send it over the UART.
  * @param offset Offset of the byte from the start of the sector.
- * @param data The address to read the value into.
  * @note An offset past the end of the flash will fail.
  * @return BOOL TRUE if the operation succeeded.
  */
@@ -159,6 +158,7 @@ BOOL CMD_TowerNumber(uint8_t mode, uint8_t lsb, uint8_t msb);
 
 /*!
  * @brief Set the tower mode and save to flash.
+ * @param mode the mode to set to.
  * @param lsb The least significant byte.
  * @param msb The most significant byte.
  * @return BOOL TRUE if the operation succeeded.

@@ -7,7 +7,10 @@
  *  @author PMcL
  *  @date 2015-09-04
  */
-
+/*!
+**  @addtogroup timer_module Timer module documentation
+**  @{
+*/
 #ifndef TIMER_H
 #define TIMER_H
 
@@ -102,3 +105,7 @@ BOOL Timer_Start(const TTimer* const aTimer);
 void __attribute__ ((interrupt)) FTM0_ISR(void);
 
 #endif
+
+/*!
+** @}
+*/

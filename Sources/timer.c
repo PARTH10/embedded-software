@@ -7,7 +7,10 @@
  *  @author Josh Gonsalves, Robin Wohlers-Reichel
  *  @date 2015-09-04
  */
-
+/*!
+**  @addtogroup timer_module Timer module documentation
+**  @{
+*/
 #include "timer.h"
 #include "MK70F12.h"
 
@@ -63,11 +66,14 @@ void __attribute__ ((interrupt)) FTM0_ISR(void)
 	{
 		//if there is no timer for this channel, continue
 		//if there is no status for this channel, continue
-		if (!TimerCache[i] || !(status & (1 << i)))
+		if (TimerCache[i] && (status & (1 << i)))
 		{
-			continue;
+			FTM0_CnSC(i) &= ~FTM_CnSC_CHF_MASK;
+			(TimerCache[i]->userFunction)(TimerCache[i]->userArguments);
 		}
-		FTM0_CnSC(i) &= ~FTM_CnSC_CHF_MASK;
-		(TimerCache[i]->userFunction)(TimerCache[i]->userArguments);
 	}
 }
+
+/*!
+** @}
+*/

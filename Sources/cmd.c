@@ -138,6 +138,10 @@ BOOL CMD_SendTime(const uint8_t hours, const uint8_t minutes, const uint8_t seco
 
 BOOL CMD_SetTime(const uint8_t hours, const uint8_t minutes, const uint8_t seconds)
 {
+	if (hours > 23 || minutes > 59 || seconds > 59)
+	{
+		return bFALSE;
+	}
 	RTC_Set(hours, minutes, seconds);
 	return bTRUE;
 }
