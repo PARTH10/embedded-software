@@ -37,6 +37,11 @@
 #define CMD_TX_SPECIAL_TOWER_VERSION 0x09
 
 /*!
+ * Send the tower protocol mode to the PC.
+ */
+#define CMD_TX_PROTOCOL_MODE 0x0a
+
+/*!
  * Send the tower number to the PC.
  */
 #define CMD_TX_TOWER_NUMBER 0x0b
@@ -50,6 +55,11 @@
  * Send the tower mode to the PC application
  */
 #define CMD_TX_TOWER_MODE 0x0d
+
+/*!
+ * Send the accelerometer values to the PC.
+ */
+#define CMD_TX_ACCELEROMETER_VALUES 0x10
 
 /*****************************************
  * Packets Transmitted from PC to Tower
@@ -76,6 +86,11 @@
  * Get the version of the Tower software.
  */
 #define CMD_RX_SPECIAL_GET_VERSION 0x09
+
+/*!
+ * Get / Set the protocol mode.
+ */
+#define CMD_RX_PROTOCOL_MODE 0x0a
 
 /*!
  * Get or set the Student ID associated with
@@ -195,6 +210,15 @@ BOOL CMD_SendTime(const uint8_t hours, const uint8_t minutes, const uint8_t seco
  */
 BOOL CMD_SetTime(const uint8_t hours, const uint8_t minutes, const uint8_t seconds);
 
+/*!
+ *
+ */
+BOOL CMD_ProtocolMode(const uint8_t getSet, const uint8_t mode, const uint8_t zero);
+
+/*!
+ *
+ */
+BOOL CMD_SendAccelerometerValues(const uint8_t values[3]);
 
 /*!
 ** @}

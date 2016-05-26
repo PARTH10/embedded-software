@@ -8,7 +8,7 @@
 **     Repository  : Kinetis
 **     Datasheet   : K70P256M150SF3RM, Rev. 2, Dec 2011
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2016-05-10, 21:56, # CodeGen: 52
+**     Date/Time   : 2016-05-26, 17:20, # CodeGen: 70
 **     Abstract    :
 **
 **     Settings    :
@@ -571,17 +571,6 @@ PE_ISR(Cpu_ivINT_RNG);
 /*
 ** ===================================================================
 **     Method      :  Cpu_Cpu_ivINT_RNG (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-
-PE_ISR(Cpu_ivINT_I2C0);
-/*
-** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_I2C0 (component MK70FN1M0MJ15)
 **
 **     Description :
 **         This ISR services an unused interrupt/exception vector.
@@ -1231,17 +1220,6 @@ PE_ISR(Cpu_ivINT_PORTA);
 /*
 ** ===================================================================
 **     Method      :  Cpu_Cpu_ivINT_PORTA (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-
-PE_ISR(Cpu_ivINT_PORTB);
-/*
-** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_PORTB (component MK70FN1M0MJ15)
 **
 **     Description :
 **         This ISR services an unused interrupt/exception vector.

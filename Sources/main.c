@@ -34,14 +34,20 @@
 #include "INT_RTC_Seconds.h"
 #include "INT_PIT0.h"
 #include "INT_FTM0.h"
+#include "INT_I2C0.h"
+#include "INT_PORTB.h"
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
 #include "IO_Map.h"
 
+
+#include "accel.h"
 #include "cmd.h"
 #include "flash.h"
+#include "I2C.h"
 #include "LEDs.h"
+#include "median.h"
 #include "packet.h"
 #include "PIT.h"
 #include "RTC.h"
@@ -56,12 +62,144 @@ void BlueOff(void *arguments)
 	LEDs_Toggle(LED_BLUE);
 }
 
+/*!
+ * @brief If asserted an accelerometer read should be scheduled.
+ */
+static uint8_t PendingAccelReadFlag = 0;
+
+/*!
+ * @brief Sets the PendingAccelReadFlag flag.
+ */
+void QueueAccelRead(void *argument)
+{
+	PendingAccelReadFlag = 1;
+}
+
+/*!
+ * @brief If asserted there is new accelerometer data available in AccReadData[3].
+ */
+static uint8_t NewAccelDataFlag = 0;
+
+/*!
+ * @brief Contains the freshest accelerometer data.
+ */
+static uint8_t AccReadData[3] = {0};
+
+/*!
+ * @brief Callback after the accelerometer data is updated.
+ */
+void AccelReadCallback(uint8_t values[3])
+{
+	NewAccelDataFlag = 1;
+}
+
+/*!
+ * @brief Shifts the elements of an array one to the left.
+ * @param array The array to shift.
+ * @param len The length of the array.
+ * @param newVal The new value to insert at index 0.
+ */
+void ShiftArray(uint8_t *const array, const size_t len, const uint8_t newVal)
+{
+	for (size_t i = (len-1); i > 0; i--)
+	{
+		array[i] = array[i-1];
+	}
+	array[0] = newVal;
+}
+
+/*!
+ * @brief The last bytes of accelerometer data which were sent.
+ */
+static uint8_t AccelSendHistory[3] = {0};
+
+/*!
+ * @brief The last bytes of x read from the accelerometer in poll mode.
+ */
+static uint8_t AccelXHistory[3] = {0};
+
+/*!
+ * @brief The last bytes of y read from the accelerometer in poll mode.
+ */
+static uint8_t AccelYHistory[3] = {0};
+
+/*!
+ * @brief The last bytes of z read from the accelerometer in poll mode.
+ */
+static uint8_t AccelZHistory[3] = {0};
+
+/*!
+ * @brief Run on the main thread to handle new accelerometer data.
+ */
+void HandleNewAccelData()
+{
+	if (Accel_GetMode() == ACCEL_INT)
+	{
+		Packet_Put(0x10, AccReadData[0], AccReadData[1], AccReadData[2]);
+		return;
+	}
+
+	//Shift history
+	ShiftArray(AccelXHistory, 3, AccReadData[0]);
+	ShiftArray(AccelYHistory, 3, AccReadData[1]);
+	ShiftArray(AccelZHistory, 3, AccReadData[2]);
+
+	uint8_t xMed = Median_Filter3(AccelXHistory[0], AccelXHistory[1], AccelXHistory[2]);
+	uint8_t yMed = Median_Filter3(AccelYHistory[0], AccelYHistory[1], AccelYHistory[2]);
+	uint8_t zMed = Median_Filter3(AccelZHistory[0], AccelZHistory[1], AccelZHistory[2]);
+
+	if ((xMed != AccelSendHistory[0]) | (yMed != AccelSendHistory[1]) | (zMed != AccelSendHistory[2]))
+	{
+		AccelSendHistory[0] = xMed;
+		AccelSendHistory[1] = yMed;
+		AccelSendHistory[2] = zMed;
+		(void)CMD_SendAccelerometerValues(AccelSendHistory);
+	}
+}
+
+/*!
+ * @brief FTM Timer run after a packet arrives.
+ */
 const static TTimer PacketTimer = {0,
 																 24414,
 																 TIMER_FUNCTION_OUTPUT_COMPARE,
 																 TIMER_OUTPUT_DISCONNECT,
 																 &BlueOff,
 																 (void *)0};
+
+/*!
+ * @brief Asserted if the "AccTimer" is running.
+ */
+static uint8_t AccTimerRunningFlag = 0;
+
+/*!
+ * @brief Called when the 1Hz timer expires, or when the
+ *        accelerometer ISR fires.
+ */
+void AccTimerCallback(void *arguments)
+{
+	AccTimerRunningFlag = 0;
+	QueueAccelRead((void *)0);
+}
+
+/*!
+ * @brief Timer to run the 1Hz accelerometer polling.
+ */
+const static TTimer AccTimer = {1,
+		                            48828,
+																TIMER_FUNCTION_OUTPUT_COMPARE,
+																TIMER_OUTPUT_DISCONNECT,
+																&AccTimerCallback,
+																(void *)0};
+
+/*!
+ * @brief Accelerometer module setup structure.
+ */
+const static TAccelSetup AccelSetup = {CPU_BUS_CLK_HZ,
+	                                     &AccTimerCallback,
+																			 (void *)0,
+												           		 &AccelReadCallback,
+											           		 	 AccReadData};
 
 /*!
  * @brief Handle incoming packets
@@ -93,6 +231,8 @@ void HandlePacket()
 		break;
 	case CMD_RX_SET_TIME:
 		error = !CMD_SetTime(Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
+	case CMD_RX_PROTOCOL_MODE:
+		error = !CMD_ProtocolMode(Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
 	default:
 		break;
 	}
@@ -113,6 +253,9 @@ void HandlePacket()
 	}
 }
 
+/*!
+ * @brief Runs every second in response to the RTC interrupt.
+ */
 void RtcCallback(void *arguments)
 {
 	uint8_t h, m, s;
@@ -121,6 +264,9 @@ void RtcCallback(void *arguments)
 	LEDs_Toggle(LED_YELLOW);
 }
 
+/*!
+ * @brief Callback when the PIT expires.
+ */
 void PitCallback(void *arguments)
 {
 	LEDs_Toggle(LED_GREEN);
@@ -144,6 +290,9 @@ int main(void)
   //Initialize all the modules
   LEDs_Init();
 
+  I2C_Init((TI2CModule *)0, 0);
+  Accel_Init(&AccelSetup);
+
   PIT_Init(MODULE_CLOCK, &PitCallback, (void *)0);
   PIT_Set(500000000, bFALSE);
   PIT_Enable(bTRUE);
@@ -157,6 +306,7 @@ int main(void)
 
   Timer_Init();
   Timer_Set(&PacketTimer);
+  Timer_Set(&AccTimer);
 
   CMD_SpecialGetStartupValues();
 
@@ -164,11 +314,49 @@ int main(void)
 
 	for (;;)
 	{
+		/*
+		 * If there is a new packet available,
+		 *  turn on the blue LED, start the timer
+		 *  to turn the LED off and finally
+		 *  handle the packet.
+		 */
 		if (Packet_Get())
 		{
 			LEDs_On(LED_BLUE);
 			Timer_Start(&PacketTimer);
 			HandlePacket();
+		}
+
+		/*
+		 * If the accelerometer 1Hz timer is *NOT* running and
+		 *  we are in poll mode, restart the timer.
+		 * Also reset the flag.
+		 */
+		if (!AccTimerRunningFlag && (Accel_GetMode() == ACCEL_POLL))
+		{
+			AccTimerRunningFlag = 1;
+			Timer_Start(&AccTimer);
+		}
+
+		/*
+		 * If there is a pending accelerometer read,
+		 *  read the XYZ values from the accelerometer
+		 *  and clear the flag.
+		 */
+		if (PendingAccelReadFlag)
+		{
+			PendingAccelReadFlag = 0;
+			Accel_ReadXYZ(AccReadData);
+		}
+
+		/*
+		 * If there is accelerometer data available,
+		 *  clear the flag and handle the data.
+		 */
+		if (NewAccelDataFlag)
+		{
+			NewAccelDataFlag = 0;
+			HandleNewAccelData();
 		}
 	}
 

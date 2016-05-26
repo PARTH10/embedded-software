@@ -11,6 +11,7 @@
 */
 #include "cmd.h"
 
+#include "accel.h"
 #include "flash.h"
 #include "packet.h"
 #include "RTC.h"
@@ -144,6 +145,42 @@ BOOL CMD_SetTime(const uint8_t hours, const uint8_t minutes, const uint8_t secon
 	}
 	RTC_Set(hours, minutes, seconds);
 	return bTRUE;
+}
+
+BOOL CMD_ProtocolMode(const uint8_t getSet, const uint8_t mode, const uint8_t zero)
+{
+	if (zero)
+	{
+		return bFALSE;
+	}
+	if (getSet == 1)
+	{
+		if (mode)//parameter 2 should be 0 when getting
+		{
+			return bFALSE;
+		}
+		uint8_t modeInt = 0;
+		if (Accel_GetMode() == ACCEL_INT)
+		{
+			modeInt = 1;
+		}
+		return Packet_Put(CMD_TX_TOWER_MODE, 0x01, modeInt, 0x0);
+	}
+	else if (getSet == 2)
+	{
+		if (mode > 1)
+		{
+			return bFALSE;
+		}
+		Accel_SetMode(mode ? ACCEL_INT : ACCEL_POLL);
+		return bTRUE;
+	}
+	return bFALSE;
+}
+
+BOOL CMD_SendAccelerometerValues(const uint8_t values[3])
+{
+	return Packet_Put(CMD_TX_ACCELEROMETER_VALUES, values[0], values[1], values[2]);
 }
 
 /*!

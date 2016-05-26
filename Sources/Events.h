@@ -37,6 +37,8 @@
 #include "INT_RTC_Seconds.h"
 #include "INT_PIT0.h"
 #include "INT_FTM0.h"
+#include "INT_I2C0.h"
+#include "INT_PORTB.h"
 
 #ifdef __cplusplus
 extern "C" {

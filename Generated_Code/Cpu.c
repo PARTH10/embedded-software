@@ -8,7 +8,7 @@
 **     Repository  : Kinetis
 **     Datasheet   : K70P256M150SF3RM, Rev. 2, Dec 2011
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2016-05-10, 23:33, # CodeGen: 53
+**     Date/Time   : 2016-05-26, 18:57, # CodeGen: 76
 **     Abstract    :
 **
 **     Settings    :
@@ -336,6 +336,8 @@
 #include "INT_RTC_Seconds.h"
 #include "INT_PIT0.h"
 #include "INT_FTM0.h"
+#include "INT_I2C0.h"
+#include "INT_PORTB.h"
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
@@ -927,21 +929,6 @@ PE_ISR(Cpu_ivINT_Watchdog)
 ** ===================================================================
 */
 PE_ISR(Cpu_ivINT_RNG)
-{
-  /* This code can be changed using the CPU component property "Build Options / Unhandled int code" */
-  PE_DEBUGHALT();
-}
-
-/*
-** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_I2C0 (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-PE_ISR(Cpu_ivINT_I2C0)
 {
   /* This code can be changed using the CPU component property "Build Options / Unhandled int code" */
   PE_DEBUGHALT();
@@ -1834,21 +1821,6 @@ PE_ISR(Cpu_ivINT_PORTA)
 
 /*
 ** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_PORTB (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-PE_ISR(Cpu_ivINT_PORTB)
-{
-  /* This code can be changed using the CPU component property "Build Options / Unhandled int code" */
-  PE_DEBUGHALT();
-}
-
-/*
-** ===================================================================
 **     Method      :  Cpu_Cpu_ivINT_PORTC (component MK70FN1M0MJ15)
 **
 **     Description :
@@ -2293,12 +2265,20 @@ void PE_low_level_init(void)
   NVICIP68 = NVIC_IP_PRI68(0x80);
   /* NVICIP62: PRI62=0x80 */
   NVICIP62 = NVIC_IP_PRI62(0x80);
+  /* NVICIP24: PRI24=0x80 */
+  NVICIP24 = NVIC_IP_PRI24(0x80);
+  /* NVICIP88: PRI88=0x80 */
+  NVICIP88 = NVIC_IP_PRI88(0x80);
   /* NVICIP20: PRI20=0 */
   NVICIP20 = NVIC_IP_PRI20(0x00);
   /* NVICISER1: SETENA|=0x40020000 */
   NVICISER1 |= NVIC_ISER_SETENA(0x40020000);
-  /* NVICISER2: SETENA|=0x18 */
-  NVICISER2 |= NVIC_ISER_SETENA(0x18);
+  /* NVICISER2: SETENA|=0x01000018 */
+  NVICISER2 |= NVIC_ISER_SETENA(0x01000018);
+  /* NVICISER0: SETENA|=0x01000000 */
+  NVICISER0 |= NVIC_ISER_SETENA(0x01000000);
+
+
 
 
 

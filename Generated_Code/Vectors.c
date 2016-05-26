@@ -6,7 +6,7 @@
 **     Version     : Component 01.028, Driver 01.04, CPU db: 3.00.000
 **     Repository  : Kinetis
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2016-05-10, 23:33, # CodeGen: 53
+**     Date/Time   : 2016-05-26, 18:57, # CodeGen: 76
 **     Abstract    :
 **
 **     Settings    :
@@ -59,6 +59,8 @@
   #include "INT_RTC_Seconds.h"
   #include "INT_PIT0.h"
   #include "INT_FTM0.h"
+  #include "INT_I2C0.h"
+  #include "INT_PORTB.h"
   #include "Events.h"
 
 
@@ -118,7 +120,7 @@
     (tIsrFunc)&Cpu_ivINT_LLW,          /* 0x25  0x00000094   -   ivINT_LLW                      unused by PE */
     (tIsrFunc)&Cpu_ivINT_Watchdog,     /* 0x26  0x00000098   -   ivINT_Watchdog                 unused by PE */
     (tIsrFunc)&Cpu_ivINT_RNG,          /* 0x27  0x0000009C   -   ivINT_RNG                      unused by PE */
-    (tIsrFunc)&Cpu_ivINT_I2C0,         /* 0x28  0x000000A0   -   ivINT_I2C0                     unused by PE */
+    (tIsrFunc)&I2C_ISR,                /* 0x28  0x000000A0   8   ivINT_I2C0                     used by PE */
     (tIsrFunc)&Cpu_ivINT_I2C1,         /* 0x29  0x000000A4   -   ivINT_I2C1                     unused by PE */
     (tIsrFunc)&Cpu_ivINT_SPI0,         /* 0x2A  0x000000A8   -   ivINT_SPI0                     unused by PE */
     (tIsrFunc)&Cpu_ivINT_SPI1,         /* 0x2B  0x000000AC   -   ivINT_SPI1                     unused by PE */
@@ -182,7 +184,7 @@
     (tIsrFunc)&Cpu_ivINT_LPTimer,      /* 0x65  0x00000194   -   ivINT_LPTimer                  unused by PE */
     (tIsrFunc)&Cpu_ivINT_Reserved102,  /* 0x66  0x00000198   -   ivINT_Reserved102              unused by PE */
     (tIsrFunc)&Cpu_ivINT_PORTA,        /* 0x67  0x0000019C   -   ivINT_PORTA                    unused by PE */
-    (tIsrFunc)&Cpu_ivINT_PORTB,        /* 0x68  0x000001A0   -   ivINT_PORTB                    unused by PE */
+    (tIsrFunc)&AccelDataReady_ISR,     /* 0x68  0x000001A0   8   ivINT_PORTB                    used by PE */
     (tIsrFunc)&Cpu_ivINT_PORTC,        /* 0x69  0x000001A4   -   ivINT_PORTC                    unused by PE */
     (tIsrFunc)&Cpu_ivINT_PORTD,        /* 0x6A  0x000001A8   -   ivINT_PORTD                    unused by PE */
     (tIsrFunc)&Cpu_ivINT_PORTE,        /* 0x6B  0x000001AC   -   ivINT_PORTE                    unused by PE */

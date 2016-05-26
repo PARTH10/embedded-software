@@ -3,7 +3,7 @@
   <Header>
     <Name>Lab1</Name>
     <SavedBy>PMcL</SavedBy>
-    <ModificationStamp>17</ModificationStamp>
+    <ModificationStamp>42</ModificationStamp>
     <Date>2015-07-20</Date>
     <IDE>Eclipse IDE</IDE>
     <PEversion>1.12.0.RT7_b1515-0427</PEversion>
@@ -29,7 +29,7 @@
     <UseExistingModules>true</UseExistingModules>
     <RenamePeripheries>false</RenamePeripheries>
     <Autodependency>true</Autodependency>
-    <ProjectCompNumb>16</ProjectCompNumb>
+    <ProjectCompNumb>33</ProjectCompNumb>
     <DelUnusedPreviouslyGenFiles>true</DelUnusedPreviouslyGenFiles>
     <GeneratedCodeFrozen>false</GeneratedCodeFrozen>
     <AssignInitComponentNameToPrph>true</AssignInitComponentNameToPrph>
@@ -38704,7 +38704,7 @@
           <ReadOnly>false</ReadOnly>
           <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
           <ItemWasNeverEnabledInChgScript>true</ItemWasNeverEnabledInChgScript>
-          <Index>0</Index>
+          <Index>1</Index>
           <Expanded>true</Expanded>
         </ItemState>
         <ItemState>
@@ -39387,7 +39387,7 @@
       <Count>0</Count>
     </BoolList_FpgaConfig>
     <BoolList_BeanConfig>
-      <Count>5</Count>
+      <Count>8</Count>
       <ItemId0>2</ItemId0>
       <Value0>false</Value0>
       <ItemId1>4</ItemId1>
@@ -39396,8 +39396,14 @@
       <Value2>true</Value2>
       <ItemId3>14</ItemId3>
       <Value3>true</Value3>
-      <ItemId4>15</ItemId4>
+      <ItemId4>20</ItemId4>
       <Value4>true</Value4>
+      <ItemId5>22</ItemId5>
+      <Value5>true</Value5>
+      <ItemId6>27</ItemId6>
+      <Value6>true</Value6>
+      <ItemId7>32</ItemId7>
+      <Value7>true</Value7>
     </BoolList_BeanConfig>
     <BoolList_TaskConfig>
       <Count>0</Count>
@@ -39472,7 +39478,7 @@
       <Count>0</Count>
     </BoolList_FpgaConfig>
     <BoolList_BeanConfig>
-      <Count>5</Count>
+      <Count>8</Count>
       <ItemId0>2</ItemId0>
       <Value0>false</Value0>
       <ItemId1>4</ItemId1>
@@ -39481,8 +39487,14 @@
       <Value2>true</Value2>
       <ItemId3>14</ItemId3>
       <Value3>true</Value3>
-      <ItemId4>15</ItemId4>
+      <ItemId4>20</ItemId4>
       <Value4>true</Value4>
+      <ItemId5>22</ItemId5>
+      <Value5>true</Value5>
+      <ItemId6>27</ItemId6>
+      <Value6>true</Value6>
+      <ItemId7>32</ItemId7>
+      <Value7>true</Value7>
     </BoolList_BeanConfig>
     <BoolList_TaskConfig>
       <Count>0</Count>
@@ -39686,7 +39698,7 @@
     <ComponentUUID>com.freescale.processorexpert.interruptvector</ComponentUUID>
     <BeanType>InterruptVector</BeanType>
     <Name>INT_PIT0</Name>
-    <CompNumb>15</CompNumb>
+    <CompNumb>20</CompNumb>
     <CompEnabled>true</CompEnabled>
     <GenCodeMode>ALWAYS_WRITE</GenCodeMode>
     <IconName>PERIPHINSP</IconName>
@@ -39735,6 +39747,207 @@
         <ReadOnly>false</ReadOnly>
         <UserReadOnly>false</UserReadOnly>
         <Value>PIT_ISR</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>AllowDuplicates</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Index>1</Index>
+        <Value>false</Value>
+      </ItemState>
+    </Properties>
+    <Methods />
+    <Events />
+  </Bean>
+  <Bean>
+    <Repository>file:/${ProcessorExpert_loc}/Repositories/Kinetis_Repository</Repository>
+    <ComponentUUID>com.freescale.processorexpert.interruptvector</ComponentUUID>
+    <BeanType>InterruptVector</BeanType>
+    <Name>INT_FTM0</Name>
+    <CompNumb>22</CompNumb>
+    <CompEnabled>true</CompEnabled>
+    <GenCodeMode>ALWAYS_WRITE</GenCodeMode>
+    <IconName>PERIPHINSP</IconName>
+    <UserFolderName />
+    <Comment lines_count="0" />
+    <Template />
+    <BeanVersion>02.023</BeanVersion>
+    <LightErrorsIgnored>false</LightErrorsIgnored>
+    <Properties>
+      <ItemState>
+        <ItemSymbol>DeviceName</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>INT_FTM0</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>Vector</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>INT_FTM0</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>InitPriority</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Value>medium priority</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>ShrInt</ItemSymbol>
+        <ReadOnly>true</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Value>false</Value>
+        <Expanded>false</Expanded>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>IntSrc</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value />
+        <SharedPrphMode>false</SharedPrphMode>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>Handle</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>FTM0_ISR</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>AllowDuplicates</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Index>1</Index>
+        <Value>false</Value>
+      </ItemState>
+    </Properties>
+    <Methods />
+    <Events />
+  </Bean>
+  <Bean>
+    <Repository>file:/${ProcessorExpert_loc}/Repositories/Kinetis_Repository</Repository>
+    <ComponentUUID>com.freescale.processorexpert.interruptvector</ComponentUUID>
+    <BeanType>InterruptVector</BeanType>
+    <Name>INT_I2C0</Name>
+    <CompNumb>27</CompNumb>
+    <CompEnabled>true</CompEnabled>
+    <GenCodeMode>ALWAYS_WRITE</GenCodeMode>
+    <IconName>PERIPHINSP</IconName>
+    <UserFolderName />
+    <Comment lines_count="0" />
+    <Template />
+    <BeanVersion>02.023</BeanVersion>
+    <LightErrorsIgnored>false</LightErrorsIgnored>
+    <Properties>
+      <ItemState>
+        <ItemSymbol>DeviceName</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>INT_I2C0</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>Vector</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>INT_I2C0</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>InitPriority</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Value>medium priority</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>ShrInt</ItemSymbol>
+        <ReadOnly>true</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Value>false</Value>
+        <Expanded>false</Expanded>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>IntSrc</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value />
+        <SharedPrphMode>false</SharedPrphMode>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>Handle</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>I2C_ISR</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>AllowDuplicates</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Index>1</Index>
+        <Value>false</Value>
+      </ItemState>
+    </Properties>
+    <Methods />
+    <Events />
+  </Bean>
+  <Bean>
+    <Repository>file:/${ProcessorExpert_loc}/Repositories/Kinetis_Repository</Repository>
+    <ComponentUUID>com.freescale.processorexpert.interruptvector</ComponentUUID>
+    <BeanType>InterruptVector</BeanType>
+    <Name>INT_PORTB</Name>
+    <CompNumb>32</CompNumb>
+    <CompEnabled>true</CompEnabled>
+    <GenCodeMode>ALWAYS_WRITE</GenCodeMode>
+    <IconName>PERIPHINSP</IconName>
+    <UserFolderName />
+    <Comment lines_count="0" />
+    <Template />
+    <BeanVersion>02.023</BeanVersion>
+    <LightErrorsIgnored>false</LightErrorsIgnored>
+    <Properties>
+      <ItemState>
+        <ItemSymbol>DeviceName</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>INT_PORTB</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>Vector</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>INT_PORTB</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>InitPriority</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Value>medium priority</Value>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>ShrInt</ItemSymbol>
+        <ReadOnly>true</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <PropertyModelIsAutomatic>false</PropertyModelIsAutomatic>
+        <Value>false</Value>
+        <Expanded>false</Expanded>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>IntSrc</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value />
+        <SharedPrphMode>false</SharedPrphMode>
+      </ItemState>
+      <ItemState>
+        <ItemSymbol>Handle</ItemSymbol>
+        <ReadOnly>false</ReadOnly>
+        <UserReadOnly>false</UserReadOnly>
+        <Value>AccelDataReady_ISR</Value>
       </ItemState>
       <ItemState>
         <ItemSymbol>AllowDuplicates</ItemSymbol>
