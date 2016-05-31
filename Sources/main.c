@@ -55,11 +55,18 @@
 #include "UART.h"
 
 const static uint32_t BAUD_RATE = 115200;
+
+/*!
+ * @brief The module clock passed to submodules.
+ */
 const static uint32_t MODULE_CLOCK = CPU_BUS_CLK_HZ;
 
+/*!
+ * @brief Callback after the UART timer expires.
+ */
 void BlueOff(void *arguments)
 {
-	LEDs_Toggle(LED_BLUE);
+	LEDs_Off(LED_BLUE);
 }
 
 /*!
@@ -88,7 +95,7 @@ static uint8_t AccReadData[3] = {0};
 /*!
  * @brief Callback after the accelerometer data is updated.
  */
-void AccelReadCallback(uint8_t values[3])
+void AccelReadCallback(void *data)
 {
 	NewAccelDataFlag = 1;
 }
@@ -290,7 +297,7 @@ int main(void)
   //Initialize all the modules
   LEDs_Init();
 
-  I2C_Init((TI2CModule *)0, 0);
+  I2C_Init(100000, MODULE_CLOCK);
   Accel_Init(&AccelSetup);
 
   PIT_Init(MODULE_CLOCK, &PitCallback, (void *)0);

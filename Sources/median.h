@@ -19,7 +19,7 @@
 
 /*! @brief Median filters 3 bytes.
  *
- *  @param bytes is the array  of 3 bytes for which the median is sought.
+ *  @param n1 is the first  of 3 bytes for which the median is sought.
  *  @param n2 is the second of 3 bytes for which the median is sought.
  *  @param n3 is the third  of 3 bytes for which the median is sought.
  *  @return uint8_t The value.

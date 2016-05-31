@@ -7,23 +7,15 @@
  *  @author PMcL
  *  @date 2015-09-17
  */
-
+/*!
+**  @addtogroup i2c_module I2C module documentation
+**  @{
+*/
 #ifndef I2C_H
 #define I2C_H
 
 // new types
 #include "types.h"
-
-typedef struct
-{
-  uint8_t primarySlaveAddress;
-  uint32_t baudRate;
-  void (*readCompleteCallbackFunction)(void*);  /*!< The user's read complete callback function. */
-  void* readCompleteCallbackArguments;          /*!< The user's read complete callback function arguments. */
-} TI2CModule;
-
-#define I2C_RESTART 1<<8
-#define I2C_READ    2<<8
 
 /*! @brief Sets up the I2C before first use.
  *
@@ -31,7 +23,7 @@ typedef struct
  *  @param moduleClk The module clock in Hz.
  *  @return BOOL - TRUE if the I2C module was successfully initialized.
  */
-BOOL I2C_Init(const TI2CModule* const aI2CModule, const uint32_t moduleClk);
+BOOL I2C_Init(const uint32_t baudRate, const uint32_t moduleClk);
 
 /*! @brief Selects the current slave device
  *
@@ -43,20 +35,36 @@ void I2C_SelectSlaveDevice(const uint8_t slaveAddress);
  *
  * @param registerAddress The register address.
  * @param data The 8-bit data to write.
+ * @param waitCompletion Should wait to return until the operation completes.
  */
-void I2C_Write(const uint8_t registerAddress, const uint8_t data);
+void I2C_Write(const uint8_t registerAddress, const uint8_t data, const BOOL waitCompletion);
 
 /*! @brief Reads data of a specified length starting from a specified register
  *
  * Uses interrupts as the method of data reception.
  * @param registerAddress The register address.
- * @param data A pointer to store the bytes that are read.
+ * @param destination An array with capacity nbBytes to store the bytes that are read.
+ * @param nbBytes The number of bytes to read.
+ * @param callback Callback after the operation completes.
+ * @param callbackData Data for the callback.
+ */
+void I2C_IntRead(const uint8_t registerAddress, uint8_t* const destination, const uint8_t nbBytes, void (*callback)(void*), void *callbackData);
+
+/*! @brief Synchronously reads data of a specified length starting from a specified register
+ *
+ * Uses interrupts as the method of data reception.
+ * @param registerAddress The register address.
+ * @param destination An array with capacity nbBytes to store the bytes that are read.
  * @param nbBytes The number of bytes to read.
  */
-void I2C_IntRead(const uint8_t registerAddress, uint8_t* const data, const uint8_t nbBytes, void (*callback)(void*), void *callbackData);
+void I2C_PollRead(const uint8_t registerAddress, uint8_t* const destination, const uint8_t nbBytes);
 
-void I2C_PollRead(const uint8_t registerAddress, uint8_t* const data, const uint8_t nbBytes);
-
+/*!
+ * @brief Interrupt service for the I2C module.
+ */
 void __attribute__ ((interrupt)) I2C_ISR(void);
 
 #endif
+/*!
+** @}
+*/

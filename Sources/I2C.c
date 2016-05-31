@@ -1,37 +1,163 @@
+/*! @file
+ *
+ *  @brief Implementation of I/O routines for the K70 I2C interface.
+ *
+ *  This contains the functions for operating the I2C (inter-integrated circuit) module.
+ *
+ *  @author Robin Wohlers-Reichel, Joshua Gonsalves
+ *  @date 2016-05-29
+ */
+/*!
+**  @addtogroup i2c_module I2C module documentation
+**  @{
+*/
 #include "I2C.h"
 
 #include "MK70F12.h"
+#include "PE_Types.h"
 
+/*!
+ * @brief Macro for shifting read addresses into the i2c data register.
+ */
 #define I2C_D_READ(x) (((uint8_t)(((uint8_t)(x))<<1))|0x01)
+
+/*!
+ * @brief Macro for shifting write addresses into the i2c data register.
+ */
 #define I2C_D_WRITE(x) (((uint8_t)(((uint8_t)(x))<<1))|0x00)
 
+/*!
+ * @brief Direction of communication for current transmission.
+ */
+typedef enum
+{
+	I2C_READ = 0, I2C_WRITE = 1
+} TI2CCommDirection;
+
+/*!
+ * @brief Possible module status.
+ */
 typedef enum
 {
 	I2C_AVAILABLE = 0, I2C_BUSY = 1, I2C_ERROR = 2
 } TI2CStatus;
 
-typedef enum
+/*!
+ * @brief Current module status.
+ */
+TI2CStatus Status;
+
+/*!
+ * @brief Current communication direction
+ */
+static TI2CCommDirection CommunicationDirection;
+
+/*!
+ * @brief Position in the I2C transmission.
+ * 0 - Send device address (write)
+ * 1 - Send register address
+ * IF READ
+ * 1.5  - send repeated start if read
+ * 2 - send device address (read)
+ * 3...(n-1) - read data and ak.
+ * n - read data and nak. STOP
+ * IF WRITE
+ * 2...n - send data. STOP
+ */
+static uint8_t Position = 0;
+
+/*!
+ * @brief Address of slave to communicate with.
+ */
+static uint8_t SlaveAddress;
+
+/*!
+ * @brief Register to read / write from.
+ */
+static uint8_t RegisterAddress;
+
+/*!
+ * @brief Copy of byte to write.
+ */
+static uint8_t WriteByteCopy;
+
+/*!
+ * @brief Destination to write data.
+ */
+static uint8_t *ReadDestination;
+
+/*!
+ * @brief Pointer to last byte of destination.
+ */
+static uint8_t *ReadDestinationEnd;
+
+/*!
+ * @brief Callback once current operation completes.
+ */
+static void (*CallbackFunction)(void*);
+
+/*!
+ * @brief Argument passed to callback.
+ */
+static void *CallbackArguments;
+
+/*!
+ * @brief Tolerance of the baud rate search.
+ */
+#define BAUD_SEARCH_TOLERANCE 3000
+
+/*!
+ * @brief Count of multiplier options.
+ */
+const static size_t multiplierSize = 3;
+
+/*!
+ * @brief Multiplier options.
+ */
+const static uint8_t multiplier[] = { 1, 2, 4 };
+
+/*!
+ * @brief Count of scl options.
+ */
+const static size_t sclSize = 64;
+
+/*!
+ * @brief scl options.
+ */
+const static uint16_t scl[] = { 20, 22, 24, 26, 28, 30, 34, 40, 28, 32, 36, 40, 44, 48,
+		56, 68, 48, 56, 64, 72, 80, 88, 104, 128, 80, 96, 112, 128, 144, 160, 192,
+		240, 160, 192, 224, 256, 288, 320, 384, 480, 320, 384, 448, 512, 576, 640,
+		768, 960, 640, 768, 896, 1024, 1152, 1280, 1536, 1920, 1280, 1536, 1792,
+		2048, 2304, 2560, 3072, 3840 };
+
+/*!
+ * @brief Set the I2C baud rate.
+ * @param baudRate The target baud rate.
+ * @param moduleClk The module clock.
+ * @return BOOL if successful or not.
+ */
+BOOL BaudRate(uint32_t baudRate, uint32_t moduleClk)
 {
-	I2C_WRITING = 0, I2C_READING = 1
-} TI2CTXRX;
+	uint32_t baudResult;
+	const uint32_t lowerBaud = baudRate - BAUD_SEARCH_TOLERANCE;
+	const uint32_t upperBaud = baudRate + BAUD_SEARCH_TOLERANCE;
+	for (int i = 0; i < sclSize; i++)
+	{
+		for (int j = 0; j < multiplierSize; j++)
+		{
+			baudResult = (moduleClk / (multiplier[j] * scl[i]));
+			if (lowerBaud < baudResult && baudResult < upperBaud)
+			{
+				I2C0_F |= I2C_F_ICR(i);
+				I2C0_F |= I2C_F_MULT(j);
+				return bTRUE;
+			}
+		}
+	}
+	return bFALSE;
+}
 
-typedef struct
-{
-	uint16_t *sequence;
-	uint16_t *sequenceEnd;
-	uint8_t *receivedData;
-	void (*callbackFunction)(void*);
-	void *callbackArguments;
-	uint8_t readsAhead;
-	TI2CStatus status;
-	TI2CTXRX txrx;
-} TI2CSequence;
-
-static TI2CSequence Sequence;
-
-BOOL I2C_SendSequence(uint16_t *sequence, uint32_t sequenceLength, uint8_t *receivedData, void (*callbackFunction)(void*), void *userData);
-
-BOOL I2C_Init(const TI2CModule* const aI2CModule, const uint32_t moduleClk)
+BOOL I2C_Init(const uint32_t baudRate, const uint32_t moduleClk)
 {
 //Get some clocks flowing
 	SIM_SCGC4 |= SIM_SCGC4_IIC0_MASK;
@@ -50,8 +176,11 @@ BOOL I2C_Init(const TI2CModule* const aI2CModule, const uint32_t moduleClk)
 	NVICIP24 = NVIC_IP_PRI24(0x80);
 	NVICISER0 |= NVIC_ISER_SETENA(0x01000000);
 
-	//Set the i2c module frequency, target (many)Khz. MAGIC!!
-	I2C0_F = (I2C_F_MULT(0x02) | I2C_F_ICR(0x1E));
+	if (!BaudRate(baudRate, moduleClk))
+	{
+		PE_DEBUGHALT();
+		return bFALSE;
+	}
 // Enable i2c module
 	I2C0_C1 |= I2C_C1_IICEN_MASK;
 // Enable interrupt
@@ -59,82 +188,39 @@ BOOL I2C_Init(const TI2CModule* const aI2CModule, const uint32_t moduleClk)
 	return bTRUE;
 }
 
-static uint8_t SlaveAddress;
-
 void I2C_SelectSlaveDevice(const uint8_t slaveAddress)
 {
 	SlaveAddress = slaveAddress;
 }
 
-static uint16_t write_sequence[3]; // = {0/*I2C_D_WRITE(slaveAddress)*/, 0/*registerAddress*/, data};
-
-void I2C_Write(const uint8_t registerAddress, const uint8_t data)
+/*!
+ * @brief Start a transmission on the I2C bus.
+ *
+ * @param direction The direction of the communication.
+ * @param registerAddress The address to read from on the I2C device.
+ * @param data The data to write (if the direction is write).
+ * @param destination An array with capacity nbBytes to store the bytes that are read.
+ * @param nbBytes The number of bytes to read.
+ * @param callback Callback after the operation completes.
+ * @param callbackData Data for the callback.
+ */
+BOOL CommenceTransmission(const TI2CCommDirection direction, const uint8_t registerAddress, const uint8_t data, uint8_t * const destination, const uint8_t nbBytes, void (*callback)(void*), void *callbackData)
 {
-	write_sequence[0] = I2C_D_WRITE(SlaveAddress);
-	write_sequence[1] = registerAddress;
-	write_sequence[2] = data;
-	BOOL free = bFALSE;
-	while (free == bFALSE)
-	{
-		free = I2C_SendSequence(write_sequence, 3, (uint8_t *) 0, (void *) 0,
-				(void *) 0);
-	}
-	//Need to wait for send to finish,
-	// as all the variables are pointing to the stack.
-	while (Sequence.status == I2C_BUSY)
-	{
-	};
-}
-
-static uint16_t read_sequence[] = { 0/*I2C_D_WRITE()*/, 0/*registerAddress*/,
-I2C_RESTART, 0/*I2C_D_READ()*/, I2C_READ, I2C_READ, I2C_READ, I2C_READ,
-		I2C_READ, I2C_READ };
-
-void I2C_PollRead(const uint8_t registerAddress, uint8_t* const data,
-		const uint8_t nbBytes)
-{
-	read_sequence[0] = I2C_D_WRITE(SlaveAddress);
-	read_sequence[1] = registerAddress;
-	read_sequence[3] = I2C_D_READ(SlaveAddress);
-	BOOL free = bFALSE;
-	while (free == bFALSE)
-	{
-		free = I2C_SendSequence(read_sequence, (4 + nbBytes), data, (void *) 0,
-				(void *) 0);
-	}
-	while (Sequence.status == I2C_BUSY)
-	{
-	};
-}
-
-void I2C_IntRead(const uint8_t registerAddress, uint8_t* const data,
-		const uint8_t nbBytes, void (*callback)(void*), void *callbackData)
-{
-	read_sequence[0] = I2C_D_WRITE(SlaveAddress);
-	read_sequence[1] = registerAddress;
-	read_sequence[3] = I2C_D_READ(SlaveAddress);
-	BOOL free = bFALSE;
-	while (free == bFALSE)
-	{
-		free = I2C_SendSequence(read_sequence, (4 + nbBytes), data, callback,
-				callbackData);
-	}
-}
-
-BOOL I2C_SendSequence(uint16_t *sequence, uint32_t sequenceLength,
-		uint8_t *receivedData, void (*callbackFunction)(void*), void *userData)
-{
-	if ((Sequence.status == I2C_BUSY) | (I2C0_S & I2C_S_BUSY_MASK))
+	if ((Status == I2C_BUSY) | (I2C0_S & I2C_S_BUSY_MASK))
 	{
 		return bFALSE;
 	}
-	Sequence.sequence = sequence;
-	Sequence.sequenceEnd = sequence + sequenceLength;
-	Sequence.receivedData = receivedData;
-	Sequence.status = I2C_BUSY;
-	Sequence.txrx = I2C_WRITING;
-	Sequence.callbackFunction = callbackFunction;
-	Sequence.callbackArguments = userData;
+
+	//Only change globals if we have a lock.
+	Status = I2C_BUSY;
+
+	CommunicationDirection = direction;
+	RegisterAddress = registerAddress;
+	WriteByteCopy = data;
+	CallbackFunction = callback;
+	CallbackArguments = callbackData;
+	ReadDestination = destination;
+	ReadDestinationEnd = destination + nbBytes;
 
 	//clear interrupt
 	I2C0_S |= I2C_S_IICIF_MASK;
@@ -148,13 +234,82 @@ BOOL I2C_SendSequence(uint16_t *sequence, uint32_t sequenceLength,
 	if (status & I2C_S_ARBL_MASK)
 	{
 		I2C0_C1 &= ~(I2C_C1_IICIE_MASK | I2C_C1_MST_MASK | I2C_C1_TX_MASK);
-		Sequence.status = I2C_ERROR;
+		Status = I2C_ERROR;
 		return bFALSE;
 	}
 
+	//Set to next position
+	Position = 1;
 	//send slave address (w) (first byte)
-	I2C0_D = *Sequence.sequence++;
+	I2C0_D = I2C_D_WRITE(SlaveAddress);
 	return bTRUE;
+}
+
+void I2C_Write(const uint8_t registerAddress, const uint8_t data,
+		const BOOL waitCompletion)
+{
+	BOOL free = bFALSE;
+	while (free == bFALSE)
+	{
+		free = CommenceTransmission(I2C_WRITE, registerAddress, data, (void *)0, 0, (void *) 0, (void *) 0);
+	}
+	if (waitCompletion)
+	{
+		//Need to wait for send to finish,
+		// as all the variables are pointing to the stack.
+		while (Status == I2C_BUSY)
+		{
+		};
+	}
+}
+
+void I2C_PollRead(const uint8_t registerAddress, uint8_t* const destination,
+		const uint8_t nbBytes)
+{
+	I2C_IntRead(registerAddress, destination, nbBytes, (void *) 0, (void *) 0);
+	while (Status == I2C_BUSY)
+	{
+	};
+}
+
+void I2C_IntRead(const uint8_t registerAddress, uint8_t* const destination,
+		const uint8_t nbBytes, void (*callback)(void*), void *callbackData)
+{
+	BOOL free = bFALSE;
+	while (free == bFALSE)
+	{
+		free = CommenceTransmission(I2C_READ, registerAddress, 0, destination, nbBytes, callback, callbackData);
+	}
+}
+
+/*!
+ * @brief Handle an I2C error
+ */
+void Error()
+{
+	I2C0_C1 &= ~(I2C_C1_MST_MASK | I2C_C1_IICIE_MASK); /* Generate STOP and disable further interrupts. */
+	Status = I2C_ERROR;
+}
+
+/*!
+ * @brief Stop the I2C bus
+ */
+void Stop()
+{
+	I2C0_C1 &= ~(I2C_C1_MST_MASK | I2C_C1_IICIE_MASK | I2C_C1_TXAK_MASK);
+	Status = I2C_AVAILABLE;
+	if (CallbackFunction)
+	{
+		(*CallbackFunction)(CallbackArguments);
+	}
+}
+
+/*!
+ * @brief Get the number of remaining reads
+ */
+uint8_t RemainingReads()
+{
+	return ReadDestinationEnd - ReadDestination;
 }
 
 void __attribute__ ((interrupt)) I2C_ISR(void)
@@ -172,142 +327,80 @@ void __attribute__ ((interrupt)) I2C_ISR(void)
 	I2C0_S |= I2C_S_IICIF_MASK;
 
 	//TODO: arbitration loss test
-	if(status & I2C_S_ARBL_MASK) {
-		I2C0_S |= I2C_S_ARBL_MASK;
-		  goto i2c_isr_error;
-		}
-
-	if (Sequence.txrx == I2C_READING)
+	if (status & I2C_S_ARBL_MASK)
 	{
-		switch (Sequence.readsAhead)
+		I2C0_S |= I2C_S_ARBL_MASK;
+		Error();
+		return;
+	}
+
+	if (CommunicationDirection == I2C_WRITE)
+	{
+		switch (Position)
 		{
 		case 0:
-			/* All the reads in the sequence have been processed (but note that the final data register read still needs to
-			 be done below! Now, the next thing is either a restart or the end of a sequence. In any case, we need to
-			 switch to TX mode, either to generate a repeated start condition, or to avoid triggering another I2C read
-			 when reading the contents of the data register. */
-			I2C0_C1 |= I2C_C1_TX_MASK;
-
-			/* Perform the final data register read now that it's safe to do so. */
-			*Sequence.receivedData++ = I2C0_D;
-
-			/* Do we have a repeated start? */
-			if ((Sequence.sequence < Sequence.sequenceEnd)
-					&& (*Sequence.sequence == I2C_RESTART))
-			{
-
-				I2C0_C1 |= I2C_C1_RSTA_MASK; /* Generate a repeated start condition. */
-
-				/* A restart is processed immediately, so we need to get a new element from our sequence. This is safe, because
-				 a sequence cannot end with a RESTART: there has to be something after it. Note that the only thing that can
-				 come after a restart is an address write. */
-				Sequence.txrx = I2C_WRITING;
-				Sequence.sequence++;
-				element = *Sequence.sequence;
-				I2C0_D = element;
-			}
-			else
-			{
-				goto i2c_isr_stop;
-			}
-			break;
-
 		case 1:
-			I2C0_C1 |= I2C_C1_TXAK_MASK; /* do not ACK the final read */
-			*Sequence.receivedData++ = I2C0_D;
+			//send register address
+			I2C0_D = RegisterAddress;
+			Position++;
 			break;
-
+		case 2:
+			//restart if CommunicationDirection is READ
+			I2C0_D = WriteByteCopy;
+			Position++;
+			break;
 		default:
-			*Sequence.receivedData++ = I2C0_D;
-			break;
+			Stop();
 		}
-
-		Sequence.readsAhead--;
-
 	}
 	else
-	{ /* channel->txrx == I2C_WRITING */
-		/* First, check if we are at the end of a sequence. */
-		if (Sequence.sequence == Sequence.sequenceEnd)
+	{
+		switch (Position)
 		{
-			goto i2c_isr_stop;
-		}
-
-		if (status & I2C_S_RXAK_MASK)
-		{
-			/* We received a NACK. Generate a STOP condition and abort. */
-			goto i2c_isr_error;
-		}
-
-		/* check next thing in our sequence */
-		element = *Sequence.sequence;
-
-		if (element == I2C_RESTART)
-		{
-			/* Do we have a restart? If so, generate repeated start and make sure TX is on. */
-			I2C0_C1 |= I2C_C1_RSTA_MASK | I2C_C1_TX_MASK;
-			/* A restart is processed immediately, so we need to get a new element from our sequence. This is safe, because a
-			 sequence cannot end with a RESTART: there has to be something after it. */
-			Sequence.sequence++;
-			element = *Sequence.sequence;
-			/* Note that the only thing that can come after a restart is a write. */
-			I2C0_D = element;
-		}
-		else
-		{
-			if (element == I2C_READ)
+		case 0:
+		case 1:
+			//send register address
+			I2C0_D = RegisterAddress;
+			Position++;
+			break;
+		case 2:
+			I2C0_C1 |= I2C_C1_RSTA_MASK;
+			I2C0_D = I2C_D_READ(SlaveAddress);
+			Position++;
+			break;
+		case 3:
+			I2C0_C1 &= ~I2C_C1_TX_MASK; /* Switch to RX mode. */
+			if (RemainingReads() > 1)
 			{
-				Sequence.txrx = I2C_READING;
-				/* How many reads do we have ahead of us (not including this one)? For reads we need to know the segment length
-				 to correctly plan NACK transmissions. */
-				Sequence.readsAhead = 1; /* We already know about one read */
-				while (((Sequence.sequence + Sequence.readsAhead) < Sequence.sequenceEnd)
-						&& (*(Sequence.sequence + Sequence.readsAhead) == I2C_READ))
-				{
-					Sequence.readsAhead++;
-				}
-				I2C0_C1 &= ~I2C_C1_TX_MASK; /* Switch to RX mode. */
-
-				if (Sequence.readsAhead == 1)
-				{
-					I2C0_C1 |= I2C_C1_TXAK_MASK; /* do not ACK the final read */
-				}
-				else
-				{
-					I2C0_C1 &= ~(I2C_C1_TXAK_MASK); /* ACK all but the final read */
-				}
-				/* Dummy read comes first, note that this is not valid data! This only triggers a read, actual data will come
-				 in the next interrupt call and overwrite this. This is why we do not increment the received_data
-				 pointer. */
-				*Sequence.receivedData = I2C0_D;
-				Sequence.readsAhead--;
+				//0 = AK
+				I2C0_C1 &= ~(I2C_C1_TXAK_MASK);
 			}
 			else
 			{
-				/* Not a restart, not a read, must be a write. */
-				I2C0_D = element;
+				//1 = NAK
+				I2C0_C1 |= I2C_C1_TXAK_MASK;
 			}
+			*ReadDestination = I2C0_D;		//read out crap
+			Position++;
+			break;
+		case 4:
+			*ReadDestination++ = I2C0_D;
+			uint8_t remainder = RemainingReads();
+			if (remainder == 0)
+			{
+				Position++;
+			}
+			else if (remainder == 1)
+			{
+				I2C0_C1 |= I2C_C1_TXAK_MASK;
+			}
+			break;
+		default:
+			Stop();
+			break;
 		}
 	}
-
-	Sequence.sequence++;
-	return;
-
-	i2c_isr_stop:
-	/* Generate STOP (set MST=0), switch to RX mode, and disable further interrupts. */
-	I2C0_C1 &= ~(I2C_C1_MST_MASK | I2C_C1_IICIE_MASK | I2C_C1_TXAK_MASK);
-	Sequence.status = I2C_AVAILABLE;
-	/* Call the user-supplied callback function upon successful completion (if it exists). */
-	if (Sequence.callbackFunction)
-	{
-		(*Sequence.callbackFunction)(Sequence.callbackArguments);
-	}
-	return;
-
-	//TODO: Investigate
-	i2c_isr_error:
-	I2C0_C1 &= ~(I2C_C1_MST_MASK | I2C_C1_IICIE_MASK); /* Generate STOP and disable further interrupts. */
-	Sequence.status = I2C_ERROR;
-	return;
-
 }
+/*!
+** @}
+*/

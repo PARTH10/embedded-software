@@ -1,16 +1,14 @@
 /*! @file
  *
- *  @brief <Write your description here>.
+ *  @brief Implementation of the HAL for the accelerometer.
  *
- *  <Write your description here>.
- *
- *  @author <Write your name here>
- *  @date <Write the data here>
+ *  @author Robin Wohlers-Reichel, Joshua Gonsalves
+ *  @date 2016-03-23
  */
 
 /*!
- *  @addtogroup <Your group here>
- *  @{
+**  @addtogroup accel_module accel module documentation
+**  @{
 */
 
 // Accelerometer functions
@@ -119,14 +117,36 @@ typedef enum
 #define MMA8451Q_CTRL_REG5_INT_CFG_FIFO_MASK   0x40u
 #define MMA8451Q_CTRL_REG5_INT_CFG_ASLP_MASK   0x80u
 
+/*!
+ * @brief Callback once data is available.
+ */
 static void (*DataCallback)(void *);
+
+/*!
+ * @brief Argument to pass to data callback.
+ */
 static void *DataCallbackArgument;
 
+/*!
+ * @brief Callback once read is complete.
+ */
 static void (*ReadCallback)(void *);
+
+/*!
+ * @brief Argument passed to read callback.
+ */
 static void *ReadCallbackArgument;
 
+/*!
+ * @brief The current mode of the accel module.
+ */
 static TAccelMode CurrentMode;
 
+/*!
+ * @brief Change the active mode of the accelerometer.
+ *
+ * @param isActive bTRUE in order to activate the accelerometer.
+ */
 void SetActive(BOOL isActive)
 {
 	uint8_t reg1Tmp;
@@ -139,7 +159,7 @@ void SetActive(BOOL isActive)
 	{
 		reg1Tmp &= ~MMA8451Q_CTRL_REG1_ACTIVE_MASK;
 	}
-	I2C_Write(MMA8451Q_CTRL_REG1, reg1Tmp);
+	I2C_Write(MMA8451Q_CTRL_REG1, reg1Tmp, bFALSE);
 }
 
 BOOL Accel_Init(const TAccelSetup* const accelSetup)
@@ -175,7 +195,7 @@ BOOL Accel_Init(const TAccelSetup* const accelSetup)
 	}
 
 	//Reset the accelerometer
-	I2C_Write(MMA8451Q_CTRL_REG2, MMA8451Q_CTRL_REG2_RST_MASK);
+	I2C_Write(MMA8451Q_CTRL_REG2, MMA8451Q_CTRL_REG2_RST_MASK, bFALSE);
 	uint8_t reg2 = MMA8451Q_CTRL_REG2_RST_MASK;
 	while (reg2 & MMA8451Q_CTRL_REG2_RST_MASK)
 	{
@@ -189,7 +209,7 @@ BOOL Accel_Init(const TAccelSetup* const accelSetup)
 	 * data rate 1.56Hz (0x38)
 	 *
 	 */
-	I2C_Write(MMA8451Q_CTRL_REG1, (0x38 | MMA8451Q_CTRL_REG1_ACTIVE_MASK | MMA8451Q_CTRL_REG1_F_READ_MASK | MMA8451Q_CTRL_REG1_LNOISE_MASK));
+	I2C_Write(MMA8451Q_CTRL_REG1, (0x38 | MMA8451Q_CTRL_REG1_ACTIVE_MASK | MMA8451Q_CTRL_REG1_F_READ_MASK | MMA8451Q_CTRL_REG1_LNOISE_MASK), bFALSE);
 	return bTRUE;
 }
 
@@ -220,7 +240,7 @@ void Accel_SetMode(const TAccelMode mode)
 	SetActive(bFALSE);
 
 	/*Write the interrupt (or not)*/
-	I2C_Write(MMA8451Q_CTRL_REG4, reg4Tmp);
+	I2C_Write(MMA8451Q_CTRL_REG4, reg4Tmp, bFALSE);
 
 	/*Active on*/
 	SetActive(bTRUE);

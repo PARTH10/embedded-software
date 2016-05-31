@@ -7,7 +7,10 @@
  *  @author PMcL
  *  @date 2015-10-06
  */
-
+/*!
+**  @addtogroup accel_module accel module documentation
+**  @{
+*/
 #ifndef ACCEL_H
 #define ACCEL_H
 
@@ -28,21 +31,6 @@ typedef struct
   void (*readCompleteCallbackFunction)(void*);	/*!< The user's read complete callback function. */
   void* readCompleteCallbackArguments;		/*!< The user's read complete callback function arguments. */
 } TAccelSetup;
-
-#pragma pack(push)
-#pragma pack(1)
-
-typedef union
-{
-  uint8_t bytes[3];				/*!< The accelerometer data accessed as an array. */
-  struct
-  {
-    uint8_t x, y, z;				/*!< The accelerometer data accessed as individual axes. */
-  } axes;
-} TAccelData;
-
-#pragma pack(pop)
-
 
 /*! @brief Initializes the accelerometer by calling the initialization routines of the supporting software modules.
  *
@@ -76,3 +64,7 @@ TAccelMode Accel_GetMode();
 void __attribute__ ((interrupt)) AccelDataReady_ISR(void);
 
 #endif
+
+/*!
+** @}
+*/
