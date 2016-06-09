@@ -16,13 +16,16 @@ void FIFO_Init(TFIFO * const FIFO)
   FIFO->Start = 0;
   FIFO->End = 0;
   FIFO->NbBytes = 0;
+  FIFO->Lock = OS_SemaphoreCreate(1);
 }
 
 BOOL FIFO_Put(TFIFO * const FIFO, const uint8_t data)
 {
+	OS_SemaphoreWait(FIFO->Lock, 0);
   if (FIFO->NbBytes >= FIFO_SIZE)
   {
-      return bFALSE;
+  	OS_SemaphoreSignal(FIFO->Lock);
+		return bFALSE;
   }
   FIFO->Buffer[FIFO->End] = data;
   FIFO->NbBytes++;
@@ -31,14 +34,17 @@ BOOL FIFO_Put(TFIFO * const FIFO, const uint8_t data)
   {
       FIFO->End = 0;
   }
+  OS_SemaphoreSignal(FIFO->Lock);
   return bTRUE;
 }
 
 BOOL FIFO_Get(TFIFO * const FIFO, uint8_t volatile * const dataPtr)
 {
+	OS_SemaphoreWait(FIFO->Lock, 0);
   if (FIFO->NbBytes == 0)
   {
-      return bFALSE;
+		OS_SemaphoreSignal(FIFO->Lock);
+		return bFALSE;
   }
   *dataPtr = FIFO->Buffer[FIFO->Start];
   FIFO->Start++;
@@ -47,7 +53,9 @@ BOOL FIFO_Get(TFIFO * const FIFO, uint8_t volatile * const dataPtr)
   {
       FIFO->Start = 0;
   }
+  OS_SemaphoreSignal(FIFO->Lock);
   return bTRUE;
+
 }
 
 /*!
