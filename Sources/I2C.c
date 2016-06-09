@@ -13,6 +13,8 @@
 */
 #include "I2C.h"
 
+#include "OS.h"
+
 #include "MK70F12.h"
 #include "PE_Types.h"
 
@@ -314,12 +316,14 @@ uint8_t RemainingReads()
 
 void __attribute__ ((interrupt)) I2C_ISR(void)
 {
+	OS_ISREnter();
 	//copy status register
 	uint16_t element;
 	uint8_t status = I2C0_S;
 	if (!(status & I2C_S_IICIF_MASK))
 	{
 		//Could be the other i2c
+		OS_ISRExit();
 		return;
 	}
 
@@ -331,6 +335,7 @@ void __attribute__ ((interrupt)) I2C_ISR(void)
 	{
 		I2C0_S |= I2C_S_ARBL_MASK;
 		Error();
+		OS_ISRExit();
 		return;
 	}
 
@@ -400,6 +405,7 @@ void __attribute__ ((interrupt)) I2C_ISR(void)
 			break;
 		}
 	}
+	OS_ISRExit();
 }
 /*!
 ** @}

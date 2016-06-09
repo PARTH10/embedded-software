@@ -8,12 +8,14 @@
  *  @date 2016-03-23
  */
 /*!
-**  @addtogroup uart_module UART module documentation
-**  @{
-*/
+ **  @addtogroup uart_module UART module documentation
+ **  @{
+ */
 #include "UART.h"
 
 #include "types.h"
+
+#include "OS.h"
 
 #include "MK70F12.h"
 
@@ -80,6 +82,7 @@ BOOL UART_OutChar(const uint8_t data)
 
 void __attribute__ ((interrupt)) UART_ISR(void)
 {
+	OS_ISREnter();
 	if (UART2_S1 & UART_S1_TDRE_MASK)
 	{
 		if (FIFO_Get(&TxFIFO, &UART2_D) == bFALSE)
@@ -91,8 +94,9 @@ void __attribute__ ((interrupt)) UART_ISR(void)
 	{
 		FIFO_Put(&RxFIFO, UART2_D);
 	}
+	OS_ISRExit();
 }
 
 /*!
-** @}
-*/
+ ** @}
+ */

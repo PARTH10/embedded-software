@@ -20,6 +20,8 @@
 // Median filter
 #include "median.h"
 
+#include "OS.h"
+
 // K70 module registers
 #include "MK70F12.h"
 
@@ -253,9 +255,11 @@ TAccelMode Accel_GetMode()
 
 void __attribute__ ((interrupt)) AccelDataReady_ISR(void)
 {
+	OS_ISREnter();
 	//is it this interrupt
 	if (!(PORTB_PCR7 & PORT_PCR_ISF_MASK))
 	{
+		OS_ISRExit();
 		return;
 	}
 
@@ -264,7 +268,7 @@ void __attribute__ ((interrupt)) AccelDataReady_ISR(void)
 
 	//clear the interrupt on the mma by reading the data.
 	(DataCallback)(DataCallbackArgument);
-
+	OS_ISRExit();
 }
 
 /*!

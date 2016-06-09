@@ -8,7 +8,7 @@
 **     Repository  : Kinetis
 **     Datasheet   : K70P256M150SF3RM, Rev. 2, Dec 2011
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2016-05-26, 18:57, # CodeGen: 76
+**     Date/Time   : 2016-06-09, 18:26, # CodeGen: 79
 **     Abstract    :
 **
 **     Settings    :
@@ -338,6 +338,8 @@
 #include "INT_FTM0.h"
 #include "INT_I2C0.h"
 #include "INT_PORTB.h"
+#include "INT_SysTick.h"
+#include "INT_PendableSrvReq.h"
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
@@ -539,36 +541,6 @@ PE_ISR(Cpu_ivINT_DebugMonitor)
 ** ===================================================================
 */
 PE_ISR(Cpu_ivINT_Reserved13)
-{
-  /* This code can be changed using the CPU component property "Build Options / Unhandled int code" */
-  PE_DEBUGHALT();
-}
-
-/*
-** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_PendableSrvReq (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-PE_ISR(Cpu_ivINT_PendableSrvReq)
-{
-  /* This code can be changed using the CPU component property "Build Options / Unhandled int code" */
-  PE_DEBUGHALT();
-}
-
-/*
-** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_SysTick (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-PE_ISR(Cpu_ivINT_SysTick)
 {
   /* This code can be changed using the CPU component property "Build Options / Unhandled int code" */
   PE_DEBUGHALT();
@@ -2277,6 +2249,16 @@ void PE_low_level_init(void)
   NVICISER2 |= NVIC_ISER_SETENA(0x01000018);
   /* NVICISER0: SETENA|=0x01000000 */
   NVICISER0 |= NVIC_ISER_SETENA(0x01000000);
+  /* SCB_SHPR3: PRI_15=0x80,PRI_14=0x80 */
+  SCB_SHPR3 = (uint32_t)((SCB_SHPR3 & (uint32_t)~(uint32_t)(
+               SCB_SHPR3_PRI_15(0x7F) |
+               SCB_SHPR3_PRI_14(0x7F)
+              )) | (uint32_t)(
+               SCB_SHPR3_PRI_15(0x80) |
+               SCB_SHPR3_PRI_14(0x80)
+              ));
+
+
 
 
 

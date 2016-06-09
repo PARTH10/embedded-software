@@ -19,7 +19,7 @@
 
 /*! @brief Sets up the I2C before first use.
  *
- *  @param aI2CModule is a structure containing the operating conditions for the module.
+ *  @param baudRate the target baud rate.
  *  @param moduleClk The module clock in Hz.
  *  @return BOOL - TRUE if the I2C module was successfully initialized.
  */

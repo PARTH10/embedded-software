@@ -39,6 +39,8 @@
 #include "INT_FTM0.h"
 #include "INT_I2C0.h"
 #include "INT_PORTB.h"
+#include "INT_SysTick.h"
+#include "INT_PendableSrvReq.h"
 
 #ifdef __cplusplus
 extern "C" {

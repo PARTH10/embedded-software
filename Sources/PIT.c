@@ -13,6 +13,7 @@
 */
 #include "PIT.h"
 #include "MK70F12.h"
+#include "OS.h"
 
 #define NS_IN_1_SEC 1000000000
 
@@ -63,13 +64,16 @@ void PIT_Enable(const BOOL enable)
 
 void __attribute__ ((interrupt)) PIT_ISR(void)
 {
+	OS_ISREnter();
 	//Don't try to run code at 0x0
 	if (!Initialized)
 	{
+		OS_ISRExit();
 		return;
 	}
 	(*Callback)(Arguments);
 	PIT_TFLG0 = PIT_TFLG_TIF_MASK;
+	OS_ISRExit();
 }
 
 /*!

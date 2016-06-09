@@ -13,6 +13,7 @@
 */
 #include "timer.h"
 #include "MK70F12.h"
+#include "OS.h"
 
 #include "LEDs.h"
 
@@ -61,6 +62,7 @@ BOOL Timer_Start(const TTimer* const aTimer)
 
 void __attribute__ ((interrupt)) FTM0_ISR(void)
 {
+	OS_ISREnter();
   uint32_t status = FTM0_STATUS;
 	for (size_t i = 0; i < PIT_CHANNEL_COUNT; i++)
 	{
@@ -72,6 +74,7 @@ void __attribute__ ((interrupt)) FTM0_ISR(void)
 			(TimerCache[i]->userFunction)(TimerCache[i]->userArguments);
 		}
 	}
+	OS_ISRExit();
 }
 
 /*!

@@ -6,7 +6,7 @@
 **     Version     : Component 01.028, Driver 01.04, CPU db: 3.00.000
 **     Repository  : Kinetis
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2016-05-26, 18:57, # CodeGen: 76
+**     Date/Time   : 2016-06-09, 18:26, # CodeGen: 79
 **     Abstract    :
 **
 **     Settings    :
@@ -61,6 +61,8 @@
   #include "INT_FTM0.h"
   #include "INT_I2C0.h"
   #include "INT_PORTB.h"
+  #include "INT_SysTick.h"
+  #include "INT_PendableSrvReq.h"
   #include "Events.h"
 
 
@@ -94,8 +96,8 @@
     (tIsrFunc)&Cpu_ivINT_SVCall,       /* 0x0B  0x0000002C   -   ivINT_SVCall                   unused by PE */
     (tIsrFunc)&Cpu_ivINT_DebugMonitor, /* 0x0C  0x00000030   -   ivINT_DebugMonitor             unused by PE */
     (tIsrFunc)&Cpu_ivINT_Reserved13,   /* 0x0D  0x00000034   -   ivINT_Reserved13               unused by PE */
-    (tIsrFunc)&Cpu_ivINT_PendableSrvReq, /* 0x0E  0x00000038   -   ivINT_PendableSrvReq           unused by PE */
-    (tIsrFunc)&Cpu_ivINT_SysTick,      /* 0x0F  0x0000003C   -   ivINT_SysTick                  unused by PE */
+    (tIsrFunc)&ContextSwitch,          /* 0x0E  0x00000038   8   ivINT_PendableSrvReq           used by PE */
+    (tIsrFunc)&SysTickISR,             /* 0x0F  0x0000003C   8   ivINT_SysTick                  used by PE */
     (tIsrFunc)&Cpu_ivINT_DMA0_DMA16,   /* 0x10  0x00000040   -   ivINT_DMA0_DMA16               unused by PE */
     (tIsrFunc)&Cpu_ivINT_DMA1_DMA17,   /* 0x11  0x00000044   -   ivINT_DMA1_DMA17               unused by PE */
     (tIsrFunc)&Cpu_ivINT_DMA2_DMA18,   /* 0x12  0x00000048   -   ivINT_DMA2_DMA18               unused by PE */

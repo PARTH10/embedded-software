@@ -36,6 +36,8 @@
 #include "INT_FTM0.h"
 #include "INT_I2C0.h"
 #include "INT_PORTB.h"
+#include "INT_SysTick.h"
+#include "INT_PendableSrvReq.h"
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
@@ -48,9 +50,11 @@
 #include "I2C.h"
 #include "LEDs.h"
 #include "median.h"
+#include "OS.h"
 #include "packet.h"
 #include "PIT.h"
 #include "RTC.h"
+#include "threads.h"
 #include "timer.h"
 #include "UART.h"
 
@@ -279,48 +283,13 @@ void PitCallback(void *arguments)
 	LEDs_Toggle(LED_GREEN);
 }
 
-/*lint -save  -e970 Disable MISRA rule (6.3) checking. */
-/*!
- * @brief The entry point into the program.
- */
-int main(void)
-/*lint -restore Enable MISRA rule (6.3) checking. */
+STATIC_STACK(MainThreadStack);
+
+void MainThread(void *data)
 {
-  /* Write your local variable definition here */
-
-  /*** Processor Expert internal initialization. DON'T REMOVE THIS CODE!!! ***/
-	PE_low_level_init();
-  /*** End of Processor Expert internal initialization.                    ***/
-
-  /* Write your code here */
-
-  //Initialize all the modules
-  LEDs_Init();
-
-  I2C_Init(100000, MODULE_CLOCK);
-  Accel_Init(&AccelSetup);
-
-  PIT_Init(MODULE_CLOCK, &PitCallback, (void *)0);
-  PIT_Set(500000000, bFALSE);
-  PIT_Enable(bTRUE);
-
-  Packet_Init(BAUD_RATE, MODULE_CLOCK);
-  Flash_Init();
-  CMD_Init();
-
-  //Best to do this one last
-  RTC_Init(&RtcCallback, (void *)0);
-
-  Timer_Init();
-  Timer_Set(&PacketTimer);
-  Timer_Set(&AccTimer);
-
-  CMD_SpecialGetStartupValues();
-
-  LEDs_On(LED_ORANGE);
-
 	for (;;)
 	{
+		OS_TimeDelay(10);
 		/*
 		 * If there is a new packet available,
 		 *  turn on the blue LED, start the timer
@@ -336,7 +305,7 @@ int main(void)
 
 		/*
 		 * If the accelerometer 1Hz timer is *NOT* running and
-		 *  we are in poll mode, restart the timer.
+		 *  we are in poll mode, resta rt the timer.
 		 * Also reset the flag.
 		 */
 		if (!AccTimerRunningFlag && (Accel_GetMode() == ACCEL_POLL))
@@ -366,8 +335,67 @@ int main(void)
 			HandleNewAccelData();
 		}
 	}
+}
 
-  /*** Don't write any code pass this line, or it will be deleted during code generation. ***/
+static OS_ECB *InitSemaphore;
+
+STATIC_STACK(InitThreadStack);
+
+void InitThread(void *data)
+{
+	for(;;)
+	{
+		OS_SemaphoreWait(InitSemaphore, 0);
+		//Initialize all the modules
+		LEDs_Init();
+
+		I2C_Init(100000, MODULE_CLOCK);
+//		Accel_Init(&AccelSetup);
+
+		PIT_Init(MODULE_CLOCK, &PitCallback, (void *)0);
+		PIT_Set(500000000, bFALSE);
+		PIT_Enable(bTRUE);
+
+		Packet_Init(BAUD_RATE, MODULE_CLOCK);
+		Flash_Init();
+		CMD_Init();
+
+		//Best to do this one last
+		RTC_Init(&RtcCallback, (void *)0);
+
+		Timer_Init();
+		Timer_Set(&PacketTimer);
+		Timer_Set(&AccTimer);
+
+		CMD_SpecialGetStartupValues();
+
+		LEDs_On(LED_ORANGE);
+	}
+}
+
+/*lint -save  -e970 Disable MISRA rule (6.3) checking. */
+/*!
+ * @brief The entry point into the program.
+ */
+int main(void)
+/*lint -restore Enable MISRA rule (6.3) checking. */
+{
+  /* Write your local variable definition here */
+
+  /*** Processor Expert internal initialization. DON'T REMOVE THIS CODE!!! ***/
+	PE_low_level_init();
+  /*** End of Processor Expert internal initialization.                    ***/
+
+  /* Write your code here */
+	OS_Init(CPU_CORE_CLK_HZ);
+
+	InitSemaphore = OS_SemaphoreCreate(1);
+	CREATE_THREAD(InitThread, NULL, InitThreadStack, TP_INITTHREAD);
+  CREATE_THREAD(MainThread, NULL, MainThreadStack, TP_MAINTHREAD);
+
+  OS_Start();
+
+	/*** Don't write any code pass this line, or it will be deleted during code generation. ***/
   /*** RTOS startup code. Macro PEX_RTOS_START is defined by the RTOS component. DON'T MODIFY THIS CODE!!! ***/
   #ifdef PEX_RTOS_START
     PEX_RTOS_START();                  /* Startup of the selected RTOS. Macro is defined by the RTOS component. */

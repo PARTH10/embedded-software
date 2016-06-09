@@ -14,6 +14,7 @@
 #include "MK70F12.h"
 #include <stdint.h>
 #include <types.h>
+#include "OS.h"
 #include "RTC.h"
 #include "LEDs.h"
 
@@ -62,12 +63,15 @@ void RTC_Get(uint8_t* const hours, uint8_t* const minutes, uint8_t* const second
 
 void __attribute__ ((interrupt)) RTC_ISR(void)
 {
+	OS_ISREnter();
 	//Don't try to run code at 0x0
 	if (Initialized == bFALSE)
 	{
+		OS_ISRExit();
 		return;
 	}
 	(*Callback)(Arguments);
+	OS_ISRExit();
 }
 
 /*!

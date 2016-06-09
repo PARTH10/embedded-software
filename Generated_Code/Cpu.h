@@ -8,7 +8,7 @@
 **     Repository  : Kinetis
 **     Datasheet   : K70P256M150SF3RM, Rev. 2, Dec 2011
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2016-05-26, 17:20, # CodeGen: 70
+**     Date/Time   : 2016-06-09, 18:26, # CodeGen: 79
 **     Abstract    :
 **
 **     Settings    :
@@ -285,28 +285,6 @@ PE_ISR(Cpu_ivINT_Reserved13);
 /*
 ** ===================================================================
 **     Method      :  Cpu_Cpu_ivINT_Reserved13 (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-
-PE_ISR(Cpu_ivINT_PendableSrvReq);
-/*
-** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_PendableSrvReq (component MK70FN1M0MJ15)
-**
-**     Description :
-**         This ISR services an unused interrupt/exception vector.
-**         This method is internal. It is used by Processor Expert only.
-** ===================================================================
-*/
-
-PE_ISR(Cpu_ivINT_SysTick);
-/*
-** ===================================================================
-**     Method      :  Cpu_Cpu_ivINT_SysTick (component MK70FN1M0MJ15)
 **
 **     Description :
 **         This ISR services an unused interrupt/exception vector.
