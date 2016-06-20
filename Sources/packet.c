@@ -33,9 +33,18 @@ uint8_t PacketTest()
   uint8_t ret_val = calc_checksum == Checksum;
 }
 
+void ByteCallback()
+{
+  if (Packet_Get())
+  {
+    OS_SemaphoreSignal(Packet_Semaphore);
+  }
+}
+
 BOOL Packet_Init(const uint32_t baudRate, const uint32_t moduleClk)
 {
-  UART_Init(baudRate, moduleClk);
+  Packet_Semaphore = OS_SemaphoreCreate(0);
+  return UART_Init(baudRate, moduleClk, ByteCallback);
 }
 
 BOOL Packet_Get(void)

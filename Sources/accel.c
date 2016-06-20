@@ -188,6 +188,8 @@ BOOL Accel_Init(const TAccelSetup* const accelSetup)
 	//Check if we are connected to the correct device
 	uint8_t whoAmI;
 	I2C_SelectSlaveDevice(MMA8451Q_ADDR_SA0_HIGH);
+	//TODO: uncomment
+	/*
 	I2C_PollRead(MMA8451Q_WHO_AM_I, &whoAmI, 1);
 
 	if (whoAmI != MMA8451Q_WHO_AM_I_VALUE)
@@ -195,14 +197,16 @@ BOOL Accel_Init(const TAccelSetup* const accelSetup)
 		//This is not the i2c device we are looking for
 		return bFALSE;
 	}
+	*/
 
 	//Reset the accelerometer
-	I2C_Write(MMA8451Q_CTRL_REG2, MMA8451Q_CTRL_REG2_RST_MASK, bFALSE);
+	//TODO: uncomment
+	/*I2C_Write(MMA8451Q_CTRL_REG2, MMA8451Q_CTRL_REG2_RST_MASK, bFALSE);
 	uint8_t reg2 = MMA8451Q_CTRL_REG2_RST_MASK;
 	while (reg2 & MMA8451Q_CTRL_REG2_RST_MASK)
 	{
 		I2C_PollRead(MMA8451Q_CTRL_REG2, &reg2, 1);
-	}
+	}*/
 
 	/*
 	 * activate

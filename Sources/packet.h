@@ -17,6 +17,10 @@
 // new types
 #include "types.h"
 
+#include "OS.h"
+
+OS_ECB *Packet_Semaphore;
+
 // Packet structure
 #pragma pack(push)
 #pragma pack(1)

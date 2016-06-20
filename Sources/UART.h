@@ -18,6 +18,7 @@
 #include "types.h"
 
 #include "FIFO.h"
+#include "OS.h"
 
 TFIFO RxFIFO, TxFIFO;
 
@@ -27,7 +28,7 @@ TFIFO RxFIFO, TxFIFO;
  *  @param moduleClk The module clock rate in Hz
  *  @return BOOL - TRUE if the UART was successfully initialized.
  */
-BOOL UART_Init(const uint32_t baudRate, const uint32_t moduleClk);
+BOOL UART_Init(const uint32_t baudRate, const uint32_t moduleClk, void(*callback)(void));
  
 /*! @brief Get a character from the receive FIFO if it is not empty.
  *

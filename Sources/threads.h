@@ -16,10 +16,14 @@
 #define CREATE_THREAD(fn,data,stack,prio) OS_ThreadCreate(fn,data,&stack[THREAD_STACK_SIZE - 1],prio)
 
 //Thread priorities
-#define TP_INITTHREAD    0
-#define TP_UART_RECEIVE  1
-#define TP_UART_TRANSMIT 2
-#define TP_MAINTHREAD    4
+#define TP_INITTHREAD     0
+#define TP_UART_RECEIVE   1
+#define TP_UART_TRANSMIT  2
+
+#define TP_PACKETTHREAD   6
+#define TP_RTCTHREAD      4
+
+#define TP_MAINTHREAD    10
 
 
 
