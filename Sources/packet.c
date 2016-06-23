@@ -27,12 +27,19 @@ uint8_t Packet_Command,
 
 const uint8_t PACKET_ACK_MASK = 0x80;
 
+/*!
+ * @brief Test the packet
+ * @return non-zero if successful.
+ */
 uint8_t PacketTest()
 {
   uint8_t calc_checksum = Packet_Command ^ Packet_Parameter1 ^ Packet_Parameter2 ^ Packet_Parameter3;
   uint8_t ret_val = calc_checksum == Checksum;
 }
 
+/*!
+ * @brief Runs when a byte arrives as a callback passed to the UART module.
+ */
 void ByteCallback()
 {
   if (Packet_Get())

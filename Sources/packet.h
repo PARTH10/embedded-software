@@ -19,6 +19,9 @@
 
 #include "OS.h"
 
+/*!
+ * @brief Signaled when a packed (not byte) arrives.
+ */
 OS_ECB *Packet_Semaphore;
 
 // Packet structure

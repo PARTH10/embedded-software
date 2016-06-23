@@ -256,11 +256,19 @@ void HandlePacket()
     Packet_Put(maskedPacket, Packet_Parameter1, Packet_Parameter2, Packet_Parameter3);
   }
 }
-
+/*!
+ * @brief Semaphore to wait on for the RTC.
+ */
 static OS_ECB *RtcSemaphore;
 
+/*!
+ * @brief Stack for the rtc thread.
+ */
 STATIC_STACK(RtcThreadStack);
 
+/*!
+ * @brief Thread handling the RTC
+ */
 void RtcThread(void *data)
 {
   for (;;)
@@ -293,8 +301,14 @@ void PitCallback(void *arguments)
   LEDs_Toggle(LED_GREEN);
 }
 
+/*!
+ * @brief Stack for the packet thread.
+ */
 STATIC_STACK(PacketThreadStack);
 
+/*!
+ * @brief Thread for the bread (packets).
+ */
 void PacketThread(void *data)
 {
   for (;;)
@@ -327,8 +341,14 @@ void PacketThread(void *data)
   }
 }
 
+/*!
+ * @brief This-stuff-hasn't-been-adjusted-yet thread stack.
+ */
 STATIC_STACK(MainThreadStack);
 
+/*!
+ * @brief This-stuff-hasn't-been-adjusted-yet thread.
+ */
 void MainThread(void *data)
 {
   for (;;)
@@ -380,10 +400,19 @@ void MainThread(void *data)
   }
 }
 
+/*!
+ * @brief Runs the init thread once only.
+ */
 static OS_ECB *InitSemaphore;
 
+/*!
+ * @brief Stack for the init thread.
+ */
 STATIC_STACK(InitThreadStack);
 
+/*!
+ * @brief Initialisation thread. runs once.
+ */
 void InitThread(void *data)
 {
   for (;;)
@@ -433,15 +462,20 @@ int main(void)
   /* Write your code here */
   OS_Init(CPU_CORE_CLK_HZ);
 
+  //Important semaphores. Do it now!
   InitSemaphore = OS_SemaphoreCreate(1);
   RtcSemaphore = OS_SemaphoreCreate(0);
 
+  //Make some threads.
   CREATE_THREAD(InitThread, NULL, InitThreadStack, TP_INITTHREAD);
   CREATE_THREAD(MainThread, NULL, MainThreadStack, TP_MAINTHREAD);
   CREATE_THREAD(PacketThread, NULL, PacketThreadStack, TP_PACKETTHREAD);
   CREATE_THREAD(RtcThread, NULL, RtcThreadStack, TP_RTCTHREAD);
 
+  //GOGOGOGOOGOGOGO
   OS_Start();
+
+  //We don't go here.
 
   /*** Don't write any code pass this line, or it will be deleted during code generation. ***/
   /*** RTOS startup code. Macro PEX_RTOS_START is defined by the RTOS component. DON'T MODIFY THIS CODE!!! ***/
