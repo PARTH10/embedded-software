@@ -135,14 +135,27 @@ void __attribute__ ((interrupt)) TSI_ISR(void)
 		tempMask |= TOUCH_ORANGE_MASK;
 	}
 
-	//todo: FIX IS ANY PRESSED
-	if (tempMask > State)
+//	uint8_t a = (State & TOUCH_YELLOW_MASK);
+//	uint8_t b = (tempMask & TOUCH_YELLOW_MASK);
+//	uint8_t c = !a;
+
+	uint8_t bRising = (!(State & TOUCH_BLUE_MASK) && (tempMask & TOUCH_BLUE_MASK));
+	uint8_t gRising = (!(State & TOUCH_GREEN_MASK) && (tempMask & TOUCH_GREEN_MASK));
+	uint8_t yRising = (!(State & TOUCH_YELLOW_MASK) && (tempMask & TOUCH_YELLOW_MASK));
+	uint8_t oRising = (!(State & TOUCH_ORANGE_MASK) && (tempMask & TOUCH_ORANGE_MASK));
+
+	State = tempMask;
+
+	if (bRising || gRising || yRising || oRising)
 	{
-		State = tempMask;
 		OS_SemaphoreSignal(Semaphore);
-	} else {
-		State = tempMask;
 	}
+
+//	if ((State & 0x0F) != tempMask)
+//	{
+//		State = (State << 4) | (tempMask & 0xF);
+//		OS_SemaphoreSignal(Semaphore);
+//	}
 
 	OS_ISRExit();
 }

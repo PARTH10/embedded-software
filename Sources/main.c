@@ -55,6 +55,7 @@
 #include "OS.h"
 #include "packet.h"
 #include "PIT.h"
+#include "random.h"
 #include "RTC.h"
 #include "switch.h"
 #include "threads.h"
@@ -558,6 +559,8 @@ void InitThread(void *data)
 	for (;;)
 	{
 		OS_SemaphoreWait(InitSemaphore, 0);
+
+		Random_Init();
 		//Switches mate
 		Switch_Init(S1Callback, (void *) 0, S2Callback, (void *) 0);
 

@@ -9,9 +9,12 @@
 
 #include "LEDs.h"
 #include "OS.h"
+#include "random.h"
 #include "touch.h"
 #include "threads.h"
 #include "types.h"
+
+#define EASY_MODE
 
 #define SIMON_SEQUENCE_LENGTH 32
 
@@ -56,7 +59,12 @@ static void PopulateSequence()
 {
 	for (int i = 0; i < SIMON_SEQUENCE_LENGTH; i++)
 	{
+		uint32_t random = Random_Generate();
+#ifdef EASY_MODE
 		SimonSequence[i] = power(2, (i % 4));
+#else
+		SimonSequence[i] = power(2, (random % 4));
+#endif
 	}
 }
 
@@ -116,6 +124,8 @@ static void PlayGame()
 		{
 			SetLeds(SimonSequence[CurrentPosition]);
 			OS_TimeDelay(101);
+			SetLeds(0);
+			OS_TimeDelay(20);
 		}
 
 		SetLeds(0);
@@ -138,6 +148,9 @@ static void PlayGame()
 				return;
 			}
 		}
+		OS_TimeDelay(25);
+		SetLeds(0);
+		OS_TimeDelay(25);
 	}
 }
 
