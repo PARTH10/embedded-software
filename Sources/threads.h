@@ -23,9 +23,10 @@
 #define TP_PACKETTHREAD   6
 #define TP_RTCTHREAD      4
 
+//use only by current mode
+#define TP_MODETHREAD    8
+
+#define TP_EVENTTHREAD    9
 #define TP_MAINTHREAD    10
-
-
-
 
 #endif /* SOURCES_THREADS_H_ */

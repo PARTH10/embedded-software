@@ -41,6 +41,9 @@
 #include "INT_PORTB.h"
 #include "INT_SysTick.h"
 #include "INT_PendableSrvReq.h"
+#include "INT_PORTE.h"
+#include "INT_PORTD.h"
+#include "INT_TSI0.h"
 
 #ifdef __cplusplus
 extern "C" {
