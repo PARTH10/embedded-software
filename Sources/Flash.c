@@ -95,7 +95,7 @@ BOOL HandleErrorRegisters()
 BOOL Flash_Init()
 {
 	// Connect the busses and clocks
-	SIM_SCGC3 = SIM_SCGC3_NFC_MASK;
+	SIM_SCGC3 |= SIM_SCGC3_NFC_MASK;
 
 	//Wait for the flash module to start up
 	WaitCCIFReady();
